@@ -1,4 +1,4 @@
-# iCarus
+# iCarus: A Transcendental Approach to Music Streaming
 
 A SwiftUI media player for macOS 13+ with a skinnable interface.
 
