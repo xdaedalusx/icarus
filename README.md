@@ -1,3 +1,5 @@
+![iCarus app preview](iCarus/Assets.xcassets/AppIcon.appiconset/icon_512x512.png)
+
 # iCarus: A Transcendental Approach to Music Streaming
 
 A SwiftUI media player for macOS 13+ with a skinnable interface.
