@@ -1,0 +1,12 @@
+iCarus — Standard macOS Xcode project
+
+1. Open iCarus.xcodeproj in Xcode (not Package.swift).
+2. Select the iCarus scheme and destination My Mac.
+3. Choose Product > Build (⌘B), then Product > Run (⌘R).
+4. To find the standalone app: Product > Show Build Folder in Finder,
+   then Build/Products/Debug/iCarus.app.
+5. For a distributable build, choose Product > Archive.
+
+The original Swift source files and SampleSkins are preserved.
+The app target uses the display name iCarus and example bundle identifier
+com.example.iCarus. Change the bundle identifier to one you own before distribution.

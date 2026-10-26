@@ -1,0 +1,56 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = { };
+	objectVersion = 56;
+	objects = {
+		266C280FA86945EDB4A22142 /* Project object */ = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = 1; LastUpgradeCheck = 1600; }; buildConfigurationList = 4BB703152CFF43DE8FFD5488; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = ( en, Base, ); mainGroup = 337BB4BBC97F4EF59D74C823; productRefGroup = BE504CC268094040A84FC595; projectDirPath = ""; projectRoot = ""; targets = ( 867BB11D9DF54FA9AC927C6D, ); };
+		867BB11D9DF54FA9AC927C6D /* iCarus */ = { isa = PBXNativeTarget; buildConfigurationList = 63A56112F8C64AD09CCBF043; buildPhases = ( 5ADB9453EC93424E9D644EC8, F2E1ECCCDB3F4EB9BD714CEE, 91865BD661CF416982BC3210, ); buildRules = ( ); dependencies = ( ); name = iCarus; productName = iCarus; productReference = E6F1F30951934658943072A9; productType = "com.apple.product-type.application"; };
+		337BB4BBC97F4EF59D74C823 = { isa = PBXGroup; children = ( 8E913AA9EC184A8BAD909C10, 361018CDD264464C9C04E814, BE504CC268094040A84FC595, ); sourceTree = "<group>"; };
+		BE504CC268094040A84FC595 = { isa = PBXGroup; children = ( E6F1F30951934658943072A9, ); name = Products; sourceTree = "<group>"; };
+		E6F1F30951934658943072A9 /* iCarus.app */ = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCarus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		361018CDD264464C9C04E814 /* SampleSkins */ = { isa = PBXFileReference; lastKnownFileType = folder; path = SampleSkins; sourceTree = "<group>"; };
+		49960B61513D42F48A6143C2 /* SampleSkins in Resources */ = { isa = PBXBuildFile; fileRef = 361018CDD264464C9C04E814; };
+		8E913AA9EC184A8BAD909C10 /* Sources */ = { isa = PBXGroup; children = ( D5ECC212E3D243B7A4369854, ); path = Sources; sourceTree = "<group>"; };
+		D5ECC212E3D243B7A4369854 /* iCarus */ = { isa = PBXGroup; children = ( A22B2E2BB2E4435B8B3C8A0C, F07C89DB5FE2411B909B5CA2, E7C9F7F802634A1DA913E6F1, 927F6C3A33E644C4AED78EC4, ); path = iCarus; sourceTree = "<group>"; };
+		F07C89DB5FE2411B909B5CA2 /* Core */ = { isa = PBXGroup; children = ( 989E366974DF45339937AA66, A1E53A38E41544BFA93385F3, 380689DC099849ABAFC21304, 111ABDACD4B8489882F4E67E, AF20DFFF052A44C29C8818CE, ); path = Core; sourceTree = "<group>"; };
+		E7C9F7F802634A1DA913E6F1 /* Skins */ = { isa = PBXGroup; children = ( DC92C522975044D0A4A57D7B, 66443583C7094234B1EAF7E5, ); path = Skins; sourceTree = "<group>"; };
+		927F6C3A33E644C4AED78EC4 /* Views */ = { isa = PBXGroup; children = ( 42158E5E01124A53BEC0F508, 69CBE42EFE1D42898D4AAFA5, B1C828675C5B481C91B460EF, 6E1DA83BD0764EC1BA6AD33F, E3D29BA8F4154D1C866F423E, ); path = Views; sourceTree = "<group>"; };
+		A22B2E2BB2E4435B8B3C8A0C /* iCarusApp.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCarusApp.swift; sourceTree = "<group>"; };
+		3E9A1A0A58D94FE7BE401B22 /* iCarusApp.swift in Sources */ = { isa = PBXBuildFile; fileRef = A22B2E2BB2E4435B8B3C8A0C; };
+		989E366974DF45339937AA66 /* AppState.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		AA7D27B831E144A6925A3135 /* AppState.swift in Sources */ = { isa = PBXBuildFile; fileRef = 989E366974DF45339937AA66; };
+		A1E53A38E41544BFA93385F3 /* DownloadManager.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		6FA6DFA784544B9EB93B2606 /* DownloadManager.swift in Sources */ = { isa = PBXBuildFile; fileRef = A1E53A38E41544BFA93385F3; };
+		380689DC099849ABAFC21304 /* Library.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
+		05D5FA70F2DC437D85A9C11B /* Library.swift in Sources */ = { isa = PBXBuildFile; fileRef = 380689DC099849ABAFC21304; };
+		111ABDACD4B8489882F4E67E /* PlayerEngine.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEngine.swift; sourceTree = "<group>"; };
+		B76D7AAAFC0B4C2CBCAB45AD /* PlayerEngine.swift in Sources */ = { isa = PBXBuildFile; fileRef = 111ABDACD4B8489882F4E67E; };
+		AF20DFFF052A44C29C8818CE /* Track.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		733BB548F47C4A88AB4C9538 /* Track.swift in Sources */ = { isa = PBXBuildFile; fileRef = AF20DFFF052A44C29C8818CE; };
+		DC92C522975044D0A4A57D7B /* Skin.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skin.swift; sourceTree = "<group>"; };
+		F52429F3839B44AC8595F442 /* Skin.swift in Sources */ = { isa = PBXBuildFile; fileRef = DC92C522975044D0A4A57D7B; };
+		66443583C7094234B1EAF7E5 /* SkinManager.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinManager.swift; sourceTree = "<group>"; };
+		F692CF94427E4E95BA2E16E0 /* SkinManager.swift in Sources */ = { isa = PBXBuildFile; fileRef = 66443583C7094234B1EAF7E5; };
+		42158E5E01124A53BEC0F508 /* Components.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		69529A9B3764418184D9A219 /* Components.swift in Sources */ = { isa = PBXBuildFile; fileRef = 42158E5E01124A53BEC0F508; };
+		69CBE42EFE1D42898D4AAFA5 /* GetView.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetView.swift; sourceTree = "<group>"; };
+		CED177BAEDE14875ACCB5A59 /* GetView.swift in Sources */ = { isa = PBXBuildFile; fileRef = 69CBE42EFE1D42898D4AAFA5; };
+		B1C828675C5B481C91B460EF /* Layouts.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layouts.swift; sourceTree = "<group>"; };
+		584E8ED2D8264B71A7913339 /* Layouts.swift in Sources */ = { isa = PBXBuildFile; fileRef = B1C828675C5B481C91B460EF; };
+		6E1DA83BD0764EC1BA6AD33F /* PlayerView.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		2855A3B31D2848C3895EC8F9 /* PlayerView.swift in Sources */ = { isa = PBXBuildFile; fileRef = 6E1DA83BD0764EC1BA6AD33F; };
+		E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinSettingsView.swift; sourceTree = "<group>"; };
+		2CFABE715B76463CAA6FA044 /* SkinSettingsView.swift in Sources */ = { isa = PBXBuildFile; fileRef = E3D29BA8F4154D1C866F423E; };
+		5ADB9453EC93424E9D644EC8 /* Sources */ = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( 3E9A1A0A58D94FE7BE401B22, AA7D27B831E144A6925A3135, 6FA6DFA784544B9EB93B2606, 05D5FA70F2DC437D85A9C11B, B76D7AAAFC0B4C2CBCAB45AD, 733BB548F47C4A88AB4C9538, F52429F3839B44AC8595F442, F692CF94427E4E95BA2E16E0, 69529A9B3764418184D9A219, CED177BAEDE14875ACCB5A59, 584E8ED2D8264B71A7913339, 2855A3B31D2848C3895EC8F9, 2CFABE715B76463CAA6FA044, ); runOnlyForDeploymentPostprocessing = 0; };
+		F2E1ECCCDB3F4EB9BD714CEE /* Frameworks */ = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+		91865BD661CF416982BC3210 /* Resources */ = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( 49960B61513D42F48A6143C2, ); runOnlyForDeploymentPostprocessing = 0; };
+		FF93E317D28440878BB19BA9 = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; SDKROOT = macosx; SWIFT_VERSION = 5.0;  DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_STRICT_OBJC_MSGSEND = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_OPTIMIZATION_LEVEL = 0; ONLY_ACTIVE_ARCH = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; }; name = Debug; };
+		3FE3A3ACD1CE40A68CD2DA41 = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; SDKROOT = macosx; SWIFT_VERSION = 5.0;  DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; ENABLE_NS_ASSERTIONS = NO; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
+		1BDFF0093E42471FB7413EC9 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; COMBINE_HIDPI_IMAGES = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = iCarus; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music"; INFOPLIST_KEY_NSHighResolutionCapable = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; PRODUCT_BUNDLE_IDENTIFIER = com.example.iCarus; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = macosx; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0;  ENABLE_PREVIEWS = YES; }; name = Debug; };
+		3525E269114A4173910492CC = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; COMBINE_HIDPI_IMAGES = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = iCarus; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music"; INFOPLIST_KEY_NSHighResolutionCapable = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; PRODUCT_BUNDLE_IDENTIFIER = com.example.iCarus; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = macosx; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0;  }; name = Release; };
+		4BB703152CFF43DE8FFD5488 = { isa = XCConfigurationList; buildConfigurations = ( FF93E317D28440878BB19BA9, 3FE3A3ACD1CE40A68CD2DA41, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		63A56112F8C64AD09CCBF043 = { isa = XCConfigurationList; buildConfigurations = ( 1BDFF0093E42471FB7413EC9, 3525E269114A4173910492CC, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+	};
+	rootObject = 266C280FA86945EDB4A22142;
+}
