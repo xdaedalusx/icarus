@@ -13,6 +13,7 @@
 		2CFABE715B76463CAA6FA044 /* SkinSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */; };
 		3E9A1A0A58D94FE7BE401B22 /* iCarusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22B2E2BB2E4435B8B3C8A0C /* iCarusApp.swift */; };
 		49960B61513D42F48A6143C2 /* SampleSkins in Resources */ = {isa = PBXBuildFile; fileRef = 361018CDD264464C9C04E814 /* SampleSkins */; };
+		7A1C0DE5A9B34F6E8D2B4C22 /* Widgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4C11 /* Widgets.swift */; };
 		584E8ED2D8264B71A7913339 /* Layouts.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C828675C5B481C91B460EF /* Layouts.swift */; };
 		69529A9B3764418184D9A219 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42158E5E01124A53BEC0F508 /* Components.swift */; };
 		6FA6DFA784544B9EB93B2606 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E53A38E41544BFA93385F3 /* DownloadManager.swift */; };
@@ -37,6 +38,7 @@
 		A1E53A38E41544BFA93385F3 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		A22B2E2BB2E4435B8B3C8A0C /* iCarusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCarusApp.swift; sourceTree = "<group>"; };
 		AF20DFFF052A44C29C8818CE /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4C11 /* Widgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widgets.swift; sourceTree = "<group>"; };
 		B1C828675C5B481C91B460EF /* Layouts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layouts.swift; sourceTree = "<group>"; };
 		DC92C522975044D0A4A57D7B /* Skin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skin.swift; sourceTree = "<group>"; };
 		E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinSettingsView.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 				B1C828675C5B481C91B460EF /* Layouts.swift */,
 				6E1DA83BD0764EC1BA6AD33F /* PlayerView.swift */,
 				E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */,
+				7A1C0DE5A9B34F6E8D2B4C11 /* Widgets.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 				584E8ED2D8264B71A7913339 /* Layouts.swift in Sources */,
 				2855A3B31D2848C3895EC8F9 /* PlayerView.swift in Sources */,
 				2CFABE715B76463CAA6FA044 /* SkinSettingsView.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4C22 /* Widgets.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,12 +214,12 @@
 		1BDFF0093E42471FB7413EC9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_ASSET_PATHS = Assets.xcassets;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = iCarus;
@@ -233,12 +237,12 @@
 		3525E269114A4173910492CC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_ASSET_PATHS = Assets.xcassets;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = iCarus;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";

@@ -24,6 +24,12 @@ struct PlayerView: View {
             switch skin.manifest.layout {
             case .standard: StandardLayout()
             case .compact: CompactLayout()
+            case .widgets:
+                if let layout = skin.manifest.widgets {
+                    WidgetCanvas(layout: layout).padding(8)
+                } else {
+                    StandardLayout()
+                }
             }
         }
         .frame(width: skin.manifest.metrics.windowWidth,

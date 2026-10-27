@@ -10,6 +10,7 @@ import AppKit
 enum LayoutKind: String, Codable, CaseIterable {
     case standard   // artwork + full playlist
     case compact    // slim horizontal bar
+    case widgets    // free placement of knobs, buttons, etc. (see Widgets.swift)
 }
 
 struct SkinManifest: Codable, Equatable, Identifiable {
@@ -23,6 +24,8 @@ struct SkinManifest: Codable, Equatable, Identifiable {
     var metrics: Metrics
     /// Optional image filename inside the skin folder (e.g. "background.png").
     var backgroundImage: String?
+    /// Only used when layout == .widgets
+    var widgets: WidgetLayout?
 
     struct Colors: Codable, Equatable {
         var background: String
@@ -141,7 +144,7 @@ extension Skin {
         directory: nil
     )
 
-    static let builtIn: [Skin] = [.classic, .midnightCompact]
+    static let builtIn: [Skin] = [.classic, .midnightCompact, .retroRadio]
 }
 
 // MARK: - Environment
