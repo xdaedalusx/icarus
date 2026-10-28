@@ -62,3 +62,65 @@ Suggested next steps, roughly in order:
    preview thumbnail in the picker.
 5. **Player features:** persistent playlists, album art from metadata, media
    keys / Now Playing integration, equalizer.
+
+## Audio engine and equalizer
+
+Playback uses `AVAudioEngine` (not `AVPlayer`) so it can run a 10-band EQ:
+
+    player -> 10-band EQ -> balance mixer -> main mixer -> output
+
+- **EQ panel:** press ⌘E in Play. Settings (bands, on/off, balance) are remembered.
+- **Skin widgets:** a skin can place EQ controls with the bindings `bass`, `treble`,
+  `eqBand1`...`eqBand10`, `balance`, `eqEnabled` and `eqReset`.
+- **Visualizer:** in the default skin, click the artwork square to cycle
+  off / bars / waveform / radial. `AudioAnalyzer` turns the engine's audio tap into
+  a 32-band spectrum, a waveform and a loudness level; `VisualizerView` draws it.
+  The tap only runs while a visualizer is on screen.
+- **Video pane:** see below.
+
+## Visualizations in skins
+
+A skin places one with a widget of kind `visualization` and a `style` of `bars`,
+`waveform` or `radial` (the binding is ignored). To add a new style, add a case to
+`VisualizerStyle` and a draw function in `VisualizerView.swift`; it receives an
+`AudioFrame` (`bands`, `waveform`, `level`).
+
+## Video pane
+
+Files with a video track show their picture in the video pane (in the default skin,
+the artwork square becomes a widescreen frame). Under the hood:
+
+- The SOUND still plays through the audio engine, so the EQ, balance and visualizer
+  all work on videos.
+- `VideoController` owns a muted `AVPlayer` that only supplies the picture.
+  `PlayerEngine` is the clock: it starts, pauses and seeks the picture, and
+  `correctDrift` re-syncs it if it ever strays more than 0.2 s from the audio.
+- Skins place the pane with a widget of kind `videoPane` (binding ignored).
+- Supported: MP4 / M4V / MOV with AAC audio (what AVFoundation can read). MKV and
+  WebM aren't supported. In Get, choose "Video" to download an MP4 from YouTube.
+
+## Image widgets, shaped windows and window actions
+
+Skins can be built from their own artwork instead of the built-in look. New widget kinds:
+
+| kind | draws | notes |
+|---|---|---|
+| `image` | static artwork | faceplate, decoration; never intercepts clicks |
+| `imageButton` | `image` / `hoverImage` / `downImage` / `disabledImage` | toggles (shuffle, repeat, eqEnabled) stay "down" while on |
+| `imageSlider` | `image` (track), `fillImage`, `thumbImage`, `thumbDownImage` | `inset` = how far in from each end the thumb's centre travels; `vertical: true` for bottom-to-top |
+| `knob` | now rotates `image` if the skin supplies one | falls back to the built-in knob |
+
+- **Sprite strips:** several buttons can share one file. Give each widget a `crop` of
+  `[x, y, width, height]` in image pixels; the same crop is applied to its hover/down/disabled
+  images, so those files line up cell for cell (this is how Windows Media Player skins work).
+- **Images are looked up by file name inside the skin's own folder** (nothing outside it).
+- **Layout options:** `showsFaceplate: false` hides the built-in faceplate;
+  `shaped: true` makes the window borderless and transparent so its outline is the artwork's
+  alpha. Shaped windows hide the title bar and toolbar, so use the menus instead:
+  ⌘O add files, ⌘E equalizer, ⌘1/⌘2 Play/Get, and the new Playback menu
+  (⌘P play/pause, ⌘→ next, ⌘← previous, ⌘. stop), plus ⌘W / ⌘M.
+- **New bindings:** `play`, `pause`, `stop` (transport) and `closeWindow`, `minimizeWindow`.
+  Transport buttons show their `disabledImage` when they can't do anything (e.g. nothing queued).
+
+**Try it:** Settings (⌘,) → Import Skin Folder… → pick `SampleSkins/ImageDemo`.
+It's a small shaped radio that uses every feature above.

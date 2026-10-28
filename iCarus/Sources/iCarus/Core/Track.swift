@@ -6,6 +6,8 @@ struct Track: Identifiable, Equatable {
     let url: URL
     var title: String
     var artist: String
+    /// True when the file has a video track (shown in the video pane).
+    var hasVideo = false
 
     /// Builds a track, reading title/artist metadata when available.
     static func load(from url: URL) async -> Track {
@@ -25,7 +27,8 @@ struct Track: Identifiable, Equatable {
                 }
             }
         }
-        return Track(url: url, title: title, artist: artist)
+        let videoTracks = (try? await asset.loadTracks(withMediaType: .video)) ?? []
+        return Track(url: url, title: title, artist: artist, hasVideo: !videoTracks.isEmpty)
     }
 }
 

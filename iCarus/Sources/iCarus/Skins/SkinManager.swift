@@ -32,6 +32,7 @@ final class SkinManager: ObservableObject {
     }
 
     func reload() {
+        SkinImageCache.clear()
         var found = Skin.builtIn
         let fm = FileManager.default
         let folders = (try? fm.contentsOfDirectory(at: Self.skinsDirectory,

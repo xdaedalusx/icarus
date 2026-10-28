@@ -3,7 +3,7 @@ import Foundation
 /// Finds playable audio files on disk (used to fill the player from the downloads folder).
 enum LibraryScanner {
     // Formats AVPlayer can reliably play on macOS.
-    static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "flac", "caf"]
+    static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "flac", "caf", "mp4", "m4v", "mov"]
 
     static func audioFiles(in folder: URL) -> [URL] {
         let fm = FileManager.default

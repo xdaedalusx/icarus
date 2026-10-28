@@ -24,17 +24,40 @@ struct NowPlayingInfo: View {
 }
 
 struct ArtworkPlaceholder: View {
+    @EnvironmentObject private var engine: PlayerEngine
     @Environment(\.skin) private var skin
+    /// "bars", "waveform", "radial" or "off". Click the square to cycle.
+    @AppStorage("visualizerStyle") private var styleRaw = VisualizerStyle.bars.rawValue
+
+    private var showsVideo: Bool { engine.currentTrack?.hasVideo == true }
 
     var body: some View {
         RoundedRectangle(cornerRadius: skin.cornerRadius)
             .fill(skin.surface)
-            .overlay(
-                Image(systemName: "music.note")
-                    .font(.system(size: 64))
-                    .foregroundStyle(skin.accent.opacity(0.8))
-            )
-            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                if showsVideo {
+                    VideoPaneView()
+                } else if let style = VisualizerStyle(rawValue: styleRaw) {
+                    VisualizerView(style: style).padding(16)
+                } else {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 64))
+                        .foregroundStyle(skin.accent.opacity(0.8))
+                }
+            }
+            .overlay(alignment: .bottomTrailing) {
+                if !showsVideo {
+                    Image(systemName: "waveform")
+                        .font(.caption)
+                        .foregroundStyle(skin.secondaryText.opacity(0.7))
+                        .padding(8)
+                }
+            }
+            // Video gets a widescreen frame; audio keeps the square.
+            .aspectRatio(showsVideo ? 16.0 / 9.0 : 1, contentMode: .fit)
+            .contentShape(Rectangle())
+            .onTapGesture { if !showsVideo { styleRaw = VisualizerStyle.cycle(after: styleRaw) } }
+            .help(showsVideo ? "" : "Click to change the visualization")
     }
 }
 

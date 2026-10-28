@@ -16,6 +16,12 @@ enum WidgetKind: String, Codable {
     case slider    // tuner scale with a moving needle
     case display   // backlit text readout
     case lamp      // indicator light
+    case visualization  // live audio: bars / waveform / radial (binding is ignored)
+    case videoPane      // picture for files that have video (binding is ignored)
+    // Drawn from the skin's own artwork (see ImageWidgets.swift); binding is ignored for .image
+    case image          // static artwork: faceplate, decoration
+    case imageButton    // button with up / hover / down / disabled images
+    case imageSlider    // track + optional fill + thumb images
 }
 
 enum WidgetBinding: String, Codable {
@@ -27,6 +33,31 @@ enum WidgetBinding: String, Codable {
     case trackTitle, trackArtist, elapsedTime
     // state (lamp)
     case isPlaying
+    // equalizer: bass = band 1, treble = band 10 (knob / slider)
+    case bass, treble, balance
+    case eqBand1, eqBand2, eqBand3, eqBand4, eqBand5
+    case eqBand6, eqBand7, eqBand8, eqBand9, eqBand10
+    // equalizer actions / state (button, lamp)
+    case eqEnabled, eqReset
+    // transport + window actions (button)
+    case play, pause, stop, closeWindow, minimizeWindow
+
+    /// Which EQ band this binding controls, if any.
+    var eqBandIndex: Int? {
+        switch self {
+        case .bass, .eqBand1: return 0
+        case .eqBand2: return 1
+        case .eqBand3: return 2
+        case .eqBand4: return 3
+        case .eqBand5: return 4
+        case .eqBand6: return 5
+        case .eqBand7: return 6
+        case .eqBand8: return 7
+        case .eqBand9: return 8
+        case .treble, .eqBand10: return 9
+        default: return nil
+        }
+    }
 
     /// Seek is applied on release (seeking continuously while dragging is janky).
     var appliesLive: Bool { self != .seek }
@@ -48,12 +79,30 @@ struct WidgetSpec: Codable, Equatable, Identifiable {
     /// Knob: sweep range in degrees, 0 = straight up.
     var minAngle: Double?
     var maxAngle: Double?
+    /// Visualization: "bars", "waveform" or "radial".
+    var style: String?
+    // Image widgets. Files live in the skin folder; `crop` = [x, y, w, h] in image pixels.
+    var image: String?
+    var hoverImage: String?
+    var downImage: String?
+    var disabledImage: String?
+    var thumbImage: String?
+    var thumbDownImage: String?
+    var fillImage: String?
+    var crop: [Double]?
+    var vertical: Bool?
+    /// Image slider: how far in from each end the thumb's centre can travel.
+    var inset: Double?
 }
 
 struct WidgetLayout: Codable, Equatable {
     var canvasWidth: Double
     var canvasHeight: Double
     var widgets: [WidgetSpec]
+    /// false = don't draw the built-in faceplate (the skin supplies its own artwork).
+    var showsFaceplate: Bool?
+    /// true = borderless transparent window whose outline follows the artwork's transparency.
+    var shaped: Bool?
 }
 
 // MARK: - Bridge to the player
@@ -66,7 +115,11 @@ extension PlayerEngine {
         switch binding {
         case .volume: return Double(volume)
         case .seek: return duration > 0 ? min(max(currentTime / duration, 0), 1) : 0
-        default: return 0
+        case .balance: return Double(balance + 1) / 2
+        default:
+            // EQ bands map -range...+range dB onto 0...1 (0.5 = flat).
+            if let band = binding.eqBandIndex { return Double(eqGains[band] / EQ.range + 1) / 2 }
+            return 0
         }
     }
 
@@ -75,7 +128,11 @@ extension PlayerEngine {
         switch binding {
         case .volume: volume = Float(v)
         case .seek: if duration > 0 { seek(to: v * duration) }
-        default: break
+        case .balance: balance = snapToCenter(Float(v * 2 - 1))
+        default:
+            if let band = binding.eqBandIndex {
+                setEQGain(snapToCenter(Float(v * 2 - 1)) * EQ.range, band: band)
+            }
         }
     }
 
@@ -86,7 +143,22 @@ extension PlayerEngine {
         case .previous: previous()
         case .shuffle: shuffle.toggle()
         case .repeatMode: repeatMode = repeatMode.next
+        case .eqEnabled: eqEnabled.toggle()
+        case .eqReset: resetEQ()
+        case .play: if !isPlaying { togglePlayPause() }
+        case .pause: if isPlaying { togglePlayPause() }
+        case .stop: stop()
         default: break
+        }
+    }
+
+    /// Whether a control should look usable right now (drives the disabled image).
+    func isEnabled(_ binding: WidgetBinding) -> Bool {
+        switch binding {
+        case .playPause, .play, .next, .previous: return !queue.isEmpty
+        case .pause: return isPlaying
+        case .stop: return currentTrack != nil
+        default: return true
         }
     }
 
@@ -95,6 +167,7 @@ extension PlayerEngine {
         case .playPause, .isPlaying: return isPlaying
         case .shuffle: return shuffle
         case .repeatMode: return repeatMode != .off
+        case .eqEnabled: return eqEnabled
         default: return false
         }
     }
@@ -109,6 +182,19 @@ extension PlayerEngine {
     }
 }
 
+/// Runs a button's action: window actions here, everything else through the engine.
+@MainActor
+func performWidgetAction(_ binding: WidgetBinding, engine: PlayerEngine) {
+    switch binding {
+    case .closeWindow: NSApp.keyWindow?.performClose(nil)
+    case .minimizeWindow: NSApp.keyWindow?.miniaturize(nil)
+    default: engine.trigger(binding)
+    }
+}
+
+/// Makes the centre of a -1...1 control "sticky" so flat/centred is easy to hit.
+private func snapToCenter(_ x: Float) -> Float { abs(x) < 0.04 ? 0 : x }
+
 // MARK: - Canvas (places widgets and scales them to the window)
 
 struct WidgetCanvas: View {
@@ -120,7 +206,7 @@ struct WidgetCanvas: View {
             let scale = min(geo.size.width / layout.canvasWidth,
                             geo.size.height / layout.canvasHeight)
             ZStack(alignment: .topLeading) {
-                faceplate
+                if layout.showsFaceplate != false { faceplate }
                 ForEach(layout.widgets) { spec in
                     WidgetView(spec: spec)
                         .position(x: spec.x, y: spec.y)
@@ -157,6 +243,11 @@ struct WidgetView: View {
             case .slider: TunerWidget(spec: spec)
             case .display: DisplayWidget(spec: spec)
             case .lamp: LampWidget(spec: spec)
+            case .visualization: VisualizerWidget(spec: spec)
+            case .videoPane: VideoPaneWidget(spec: spec)
+            case .image: ImageLayerWidget(spec: spec)
+            case .imageButton: ImageButtonWidget(spec: spec)
+            case .imageSlider: ImageSliderWidget(spec: spec)
             }
         }
         .frame(width: spec.width, height: spec.height)
@@ -182,6 +273,11 @@ struct KnobWidget: View {
         let bodySize = size * 0.76
 
         ZStack {
+            if let knobImage = skin.image(named: spec.image, crop: spec.crop) {
+                Image(decorative: knobImage, scale: 1).resizable()
+                    .frame(width: size, height: size)
+                    .rotationEffect(.degrees(angle))
+            } else {
             // Tick marks around the knob
             Canvas { context, canvasSize in
                 let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
@@ -213,6 +309,7 @@ struct KnobWidget: View {
                 .padding(.top, bodySize * 0.08)
                 .frame(width: bodySize, height: bodySize, alignment: .top)
                 .rotationEffect(.degrees(angle))
+            }
         }
         .contentShape(Rectangle())
         .gesture(
@@ -242,14 +339,16 @@ struct ButtonWidget: View {
     @EnvironmentObject private var engine: PlayerEngine
     @Environment(\.skin) private var skin
 
-    private var isToggle: Bool { spec.binding == .shuffle || spec.binding == .repeatMode }
+    private var isToggle: Bool {
+        [.shuffle, .repeatMode, .eqEnabled].contains(spec.binding)
+    }
 
     var body: some View {
         let on = engine.isOn(spec.binding)
         let symbol = (on ? spec.altSymbol : nil) ?? spec.symbol ?? "circle"
 
         Button {
-            engine.trigger(spec.binding)
+            performWidgetAction(spec.binding, engine: engine)
         } label: {
             Image(systemName: symbol)
                 .font(.system(size: min(spec.width, spec.height) * 0.45, weight: .semibold))
@@ -392,7 +491,9 @@ extension WidgetLayout {
             WidgetSpec(id: "tuner", kind: .slider, binding: .seek,
                        x: 360, y: 124, width: 380, height: 48),
             WidgetSpec(id: "time", kind: .display, binding: .elapsedTime,
-                       x: 360, y: 170, width: 150, height: 26, fontSize: 12),
+                       x: 360, y: 14, width: 150, height: 22, fontSize: 11),
+            WidgetSpec(id: "viz", kind: .visualization, binding: .isPlaying,
+                       x: 360, y: 176, width: 380, height: 34, style: "bars"),
             WidgetSpec(id: "volume", kind: .knob, binding: .volume,
                        x: 95, y: 125, width: 120, height: 120),
             WidgetSpec(id: "tuning", kind: .knob, binding: .seek,

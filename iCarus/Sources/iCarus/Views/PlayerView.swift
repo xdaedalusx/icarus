@@ -6,14 +6,14 @@ import UniformTypeIdentifiers
 struct PlayerView: View {
     @EnvironmentObject private var engine: PlayerEngine
     @EnvironmentObject private var downloads: DownloadManager
+    @EnvironmentObject private var appState: AppState
     @Environment(\.skin) private var skin
-    @State private var showingImporter = false
 
     var body: some View {
         ZStack {
-            skin.background.ignoresSafeArea()
+            if !skin.isShaped { skin.background.ignoresSafeArea() }
 
-            if let image = skin.backgroundImage {
+            if !skin.isShaped, let image = skin.backgroundImage {
                 Image(nsImage: image)
                     .resizable()
                     .scaledToFill()
@@ -26,7 +26,7 @@ struct PlayerView: View {
             case .compact: CompactLayout()
             case .widgets:
                 if let layout = skin.manifest.widgets {
-                    WidgetCanvas(layout: layout).padding(8)
+                    WidgetCanvas(layout: layout).padding(skin.isShaped ? 0 : 8)
                 } else {
                     StandardLayout()
                 }
@@ -34,14 +34,14 @@ struct PlayerView: View {
         }
         .frame(width: skin.manifest.metrics.windowWidth,
                height: skin.manifest.metrics.windowHeight)
+        .ignoresSafeArea(edges: skin.isShaped ? .all : [])
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showingImporter = true
+                    appState.showingImporter = true
                 } label: {
                     Label("Add Files", systemImage: "plus")
                 }
-                .keyboardShortcut("o", modifiers: .command)
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -52,9 +52,31 @@ struct PlayerView: View {
                 }
                 .help("Add any songs in your downloads folder")
             }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    appState.showingEQ = true
+                } label: {
+                    Label("Equalizer", systemImage: "slider.vertical.3")
+                }
+                .help("Equalizer (⌘E)")
+            }
+        }
+        .sheet(isPresented: $appState.showingEQ) {
+            EqualizerView()
+        }
+        .overlay(alignment: .bottom) {
+            if let message = engine.errorMessage {
+                Text(message)
+                    .font(skin.bodyFont)
+                    .foregroundStyle(.white)
+                    .padding(8)
+                    .background(Color.red.opacity(0.85), in: RoundedRectangle(cornerRadius: 8))
+                    .padding(8)
+                    .onTapGesture { engine.clearError() }
+            }
         }
         .fileImporter(
-            isPresented: $showingImporter,
+            isPresented: $appState.showingImporter,
             allowedContentTypes: [.audio, .movie],
             allowsMultipleSelection: true
         ) { result in

@@ -36,6 +36,28 @@ struct iCarusApp: App {
                 Button("Get") { appState.section = .get }
                     .keyboardShortcut("2", modifiers: .command)
             }
+            CommandGroup(after: .newItem) {
+                Button("Add Files…") {
+                    appState.section = .play
+                    appState.showingImporter = true
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                Button("Equalizer") {
+                    appState.section = .play
+                    appState.showingEQ = true
+                }
+                .keyboardShortcut("e", modifiers: .command)
+            }
+            CommandMenu("Playback") {
+                Button("Play / Pause") { engine.togglePlayPause() }
+                    .keyboardShortcut("p", modifiers: .command)
+                Button("Next") { engine.next() }
+                    .keyboardShortcut(.rightArrow, modifiers: .command)
+                Button("Previous") { engine.previous() }
+                    .keyboardShortcut(.leftArrow, modifiers: .command)
+                Button("Stop") { engine.stop() }
+                    .keyboardShortcut(".", modifiers: .command)
+            }
         }
 
         Settings {
@@ -60,6 +82,10 @@ struct RootView: View {
             }
         }
         .environment(\.skin, skins.active)
+        .background(WindowConfigurator(
+            shaped: skins.active.isShaped && appState.section == .play,
+            contentSize: CGSize(width: skins.active.manifest.metrics.windowWidth,
+                                height: skins.active.manifest.metrics.windowHeight)))
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Picker("Mode", selection: $appState.section) {

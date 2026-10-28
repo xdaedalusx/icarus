@@ -101,7 +101,7 @@ struct GetView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 140)
+                .frame(width: 230)
             }
 
             Toggle("Skip songs I've already downloaded", isOn: $downloads.skipExisting)

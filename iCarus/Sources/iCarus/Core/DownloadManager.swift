@@ -4,13 +4,14 @@ import AppKit
 /// Only formats the player can reliably play are offered.
 /// (YouTube's native "original" audio is usually Opus, which AVPlayer can't play.)
 enum AudioFormat: String, CaseIterable, Identifiable {
-    case mp3, m4a
+    case mp3, m4a, mp4   // mp4 = video (H.264 + AAC, which the player can show)
 
     var id: String { rawValue }
     var label: String {
         switch self {
         case .mp3: return "MP3"
         case .m4a: return "M4A"
+        case .mp4: return "Video"
         }
     }
 }
@@ -127,9 +128,17 @@ final class DownloadManager: ObservableObject {
             return
         }
 
-        var args = ["--newline", "--no-colors", "--progress", "-x",
-                    "--audio-format", format.rawValue]
-        if format == .mp3 { args += ["--audio-quality", "0"] }
+        var args = ["--newline", "--no-colors", "--progress"]
+        switch format {
+        case .mp3:
+            args += ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
+        case .m4a:
+            args += ["-x", "--audio-format", "m4a"]
+        case .mp4:
+            // Prefer H.264 + AAC so AVFoundation can play both picture and sound.
+            args += ["-f", "bv*[vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]/b",
+                     "--merge-output-format", "mp4"]
+        }
         args += ["--embed-metadata", "--embed-thumbnail",
                  "--print", "after_move:filepath", "--no-quiet",
                  "-o", folder.appendingPathComponent("%(title)s.%(ext)s").path]
