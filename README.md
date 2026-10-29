@@ -1,6 +1,4 @@
-![iCarus app preview](iCarus/Assets.xcassets/AppIcon.appiconset/icon_512x512.png)
-
-# iCarus: A Transcendental Approach to Music Streaming
+# iCarus
 
 A SwiftUI media player for macOS 13+ with a skinnable interface.
 
@@ -160,3 +158,31 @@ sliders by tag or by their `value` (position, volume, balance, `eq.gainLevelN`);
 when the view has no width/height. After **Install Skin** a short summary lists what was skipped:
 unrecognised buttons and sliders, text labels, other elements, positions worked out by script, and
 elements the skin hides until a script shows them. Only Cerulean has been checked so far.
+
+Added after trying "Cyberchannel": button boxes are matched by exact colour first (skins with
+near-identical mapping colours were being merged); button groups with no picture of their own sit on
+the view's background; transparent / outside colours declared on the `<view>` also apply to the hover
+and disabled strips; `progressbar` works as a seek bar; `customslider` (a filmstrip of pictures plus a
+grey position map, like a dial along an arc) works as a new `filmstripSlider` widget; the `video`
+element shows the picture only while a video plays (the visualizer steps aside); and new bindings
+`previousVisualization`, `openFiles`, `skipBack` / `skipForward` (±10 s, from rewind / fast-forward).
+
+## Cover art
+
+Get now converts the YouTube thumbnail to JPG (`--convert-thumbnails jpg`) before embedding it, because
+the original WebP can't be embedded reliably in MP3/M4A. The player reads the cover art from the file
+(or a same-named `.jpg`/`.png` next to it) and shows it where a video would be, with the visualizer
+along the bottom if it's on (click to change it). Imported skins show it in their video window.
+Songs downloaded before this change have no embedded picture; to get one, download them again
+(turn off "skip songs I already have", or delete their line in `.downloaded.txt`).
+
+## Get: Advanced tab
+
+Get has Basic and Advanced tabs. Advanced (`AdvancedOptions` / `GetAdvancedView`) adds: audio quality
+(bitrate) or video size, file-name styles and a custom yt-dlp template, plain file names, toggles for
+cover art / tags and for splitting "Artist - Title" video titles, playlist item ranges and reverse
+order, downloading just a time range, SponsorBlock cutting (non-music parts, sponsors, intros...),
+embedded subtitles, cookies from a browser, a speed limit, and a free-text box for any other yt-dlp
+options (options that run other programs, like `--exec`, are blocked). The exact command is shown and
+can be copied into Terminal. Settings are remembered; "Reset to Defaults" restores normal behaviour,
+which matches what Get did before this tab existed.
