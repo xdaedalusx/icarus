@@ -30,7 +30,7 @@ enum WidgetBinding: String, Codable {
     // actions (button)
     case playPause, next, previous, shuffle, repeatMode
     // text (display)
-    case trackTitle, trackArtist, elapsedTime
+    case trackTitle, trackArtist, elapsedTime, positionTime, durationTime
     // state (lamp)
     case isPlaying
     // equalizer: bass = band 1, treble = band 10 (knob / slider)
@@ -41,6 +41,8 @@ enum WidgetBinding: String, Codable {
     case eqEnabled, eqReset
     // transport + window actions (button)
     case play, pause, stop, closeWindow, minimizeWindow
+    // panels and visualizer (button)
+    case showEqualizer, showPlaylist, nextVisualization
 
     /// Which EQ band this binding controls, if any.
     var eqBandIndex: Int? {
@@ -93,6 +95,11 @@ struct WidgetSpec: Codable, Equatable, Identifiable {
     var vertical: Bool?
     /// Image slider: how far in from each end the thumb's centre can travel.
     var inset: Double?
+    /// Plain display text: colour ("#RRGGBB") and alignment ("leading", "center", "trailing").
+    var textColor: String?
+    var align: String?
+    /// Visualization: draw with no panel behind it (the skin's artwork frames it).
+    var bare: Bool?
 }
 
 struct WidgetLayout: Codable, Equatable {
@@ -148,6 +155,7 @@ extension PlayerEngine {
         case .play: if !isPlaying { togglePlayPause() }
         case .pause: if isPlaying { togglePlayPause() }
         case .stop: stop()
+        case .nextVisualization: visualizerChoice = VisualizerStyle.cycle(after: visualizerChoice)
         default: break
         }
     }
@@ -177,6 +185,8 @@ extension PlayerEngine {
         case .trackTitle: return currentTrack?.title ?? "No signal"
         case .trackArtist: return currentTrack?.artist ?? ""
         case .elapsedTime: return "\(formatTime(currentTime)) / \(formatTime(duration))"
+        case .positionTime: return formatTime(currentTime)
+        case .durationTime: return formatTime(duration)
         default: return ""
         }
     }
@@ -184,8 +194,10 @@ extension PlayerEngine {
 
 /// Runs a button's action: window actions here, everything else through the engine.
 @MainActor
-func performWidgetAction(_ binding: WidgetBinding, engine: PlayerEngine) {
+func performWidgetAction(_ binding: WidgetBinding, engine: PlayerEngine, appState: AppState? = nil) {
     switch binding {
+    case .showEqualizer: appState?.showingEQ = true
+    case .showPlaylist: appState?.showingPlaylist = true
     case .closeWindow: NSApp.keyWindow?.performClose(nil)
     case .minimizeWindow: NSApp.keyWindow?.miniaturize(nil)
     default: engine.trigger(binding)
@@ -337,6 +349,7 @@ struct KnobWidget: View {
 struct ButtonWidget: View {
     let spec: WidgetSpec
     @EnvironmentObject private var engine: PlayerEngine
+    @EnvironmentObject private var appState: AppState
     @Environment(\.skin) private var skin
 
     private var isToggle: Bool {
@@ -348,7 +361,7 @@ struct ButtonWidget: View {
         let symbol = (on ? spec.altSymbol : nil) ?? spec.symbol ?? "circle"
 
         Button {
-            performWidgetAction(spec.binding, engine: engine)
+            performWidgetAction(spec.binding, engine: engine, appState: appState)
         } label: {
             Image(systemName: symbol)
                 .font(.system(size: min(spec.width, spec.height) * 0.45, weight: .semibold))
@@ -443,6 +456,26 @@ struct DisplayWidget: View {
     @Environment(\.skin) private var skin
 
     var body: some View {
+        if spec.style == "plain" {
+            plain
+        } else {
+            lcd
+        }
+    }
+
+    /// Bare text on top of the skin's own artwork (used by imported skins).
+    private var plain: some View {
+        let alignment: Alignment = spec.align == "trailing" ? .trailing : (spec.align == "center" ? .center : .leading)
+        return Text(engine.text(for: spec.binding))
+            .font(.system(size: spec.fontSize ?? 10))
+            .foregroundStyle(Color(hex: spec.textColor ?? "#FFFFFF"))
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .frame(width: spec.width, height: spec.height, alignment: alignment)
+            .allowsHitTesting(false)
+    }
+
+    private var lcd: some View {
         Text(engine.text(for: spec.binding))
             .textCase(.uppercase)
             .font(.system(size: spec.fontSize ?? 16, weight: .medium, design: .monospaced))

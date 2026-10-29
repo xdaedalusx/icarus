@@ -43,10 +43,11 @@ struct SkinSettingsView: View {
                 Button("Show Skins Folder") {
                     NSWorkspace.shared.open(SkinManager.skinsDirectory)
                 }
+                WMPImportSection()
             }
         }
         .padding(20)
-        .frame(width: 440, height: 340)
+        .frame(width: 580, height: 340)
         .fileImporter(isPresented: $showingImporter,
                       allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { skins.importSkin(from: url) }

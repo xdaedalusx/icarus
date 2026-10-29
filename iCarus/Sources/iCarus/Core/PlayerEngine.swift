@@ -61,6 +61,9 @@ final class PlayerEngine: ObservableObject {
     @Published var shuffle = false
     @Published var repeatMode: RepeatMode = .off
 
+    /// Which visualizer an imported skin's visualizer window shows ("off" hides it).
+    @Published var visualizerChoice = VisualizerStyle.bars.rawValue
+
     // Equalizer
     @Published private(set) var eqGains = [Float](repeating: 0, count: EQ.bandCount)
     @Published var eqEnabled = true {

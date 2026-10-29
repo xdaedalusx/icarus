@@ -104,10 +104,29 @@ struct VisualizerView: View {
 /// (A visualization widget ignores its binding; the style comes from `style`.)
 struct VisualizerWidget: View {
     let spec: WidgetSpec
+    @EnvironmentObject private var engine: PlayerEngine
     @Environment(\.skin) private var skin
 
+    /// "auto" follows the visualizer button; anything else is a fixed style.
+    private var style: VisualizerStyle? {
+        if spec.style == "auto" { return VisualizerStyle(rawValue: engine.visualizerChoice) }   // nil = off
+        return VisualizerStyle(rawValue: spec.style ?? "") ?? .bars
+    }
+
     var body: some View {
-        VisualizerView(style: VisualizerStyle(rawValue: spec.style ?? "") ?? .bars)
+        if spec.bare == true {
+            Group {
+                if let style { VisualizerView(style: style) }
+            }
+            .frame(width: spec.width, height: spec.height)
+            .allowsHitTesting(false)
+        } else {
+            panel
+        }
+    }
+
+    private var panel: some View {
+        VisualizerView(style: style ?? .bars)
             .padding(4)
             .frame(width: spec.width, height: spec.height)
             .background(

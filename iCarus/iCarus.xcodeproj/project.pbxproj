@@ -16,6 +16,7 @@
 		2CFABE715B76463CAA6FA044 /* SkinSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */; };
 		3E9A1A0A58D94FE7BE401B22 /* iCarusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22B2E2BB2E4435B8B3C8A0C /* iCarusApp.swift */; };
 		49960B61513D42F48A6143C2 /* SampleSkins in Resources */ = {isa = PBXBuildFile; fileRef = 361018CDD264464C9C04E814 /* SampleSkins */; };
+		7A1C0DE5A9B34F6E8D2B4D06 /* WMPImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D05 /* WMPImportView.swift */; };
 		7A1C0DE5A9B34F6E8D2B4CF2 /* ImageWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4CF1 /* ImageWidgets.swift */; };
 		7A1C0DE5A9B34F6E8D2B4CF4 /* WindowConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4CF3 /* WindowConfigurator.swift */; };
 		7A1C0DE5A9B34F6E8D2B4CEE /* VideoPaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4CDD /* VideoPaneView.swift */; };
@@ -29,6 +30,10 @@
 		AA7D27B831E144A6925A3135 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989E366974DF45339937AA66 /* AppState.swift */; };
 		B76D7AAAFC0B4C2CBCAB45AD /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111ABDACD4B8489882F4E67E /* PlayerEngine.swift */; };
 		CED177BAEDE14875ACCB5A59 /* GetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CBE42EFE1D42898D4AAFA5 /* GetView.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D0A /* WMPSkinBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D09 /* WMPSkinBuilder.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D08 /* WMPArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D07 /* WMPArtwork.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D02 /* WMSParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D01 /* WMSParser.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D04 /* WMZImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D03 /* WMZImporter.swift */; };
 		7A1C0DE5A9B34F6E8D2B4CF6 /* SkinImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4CF5 /* SkinImages.swift */; };
 		F52429F3839B44AC8595F442 /* Skin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC92C522975044D0A4A57D7B /* Skin.swift */; };
 		F692CF94427E4E95BA2E16E0 /* SkinManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66443583C7094234B1EAF7E5 /* SkinManager.swift */; };
@@ -50,6 +55,7 @@
 		A1E53A38E41544BFA93385F3 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		A22B2E2BB2E4435B8B3C8A0C /* iCarusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCarusApp.swift; sourceTree = "<group>"; };
 		AF20DFFF052A44C29C8818CE /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D05 /* WMPImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMPImportView.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4CF1 /* ImageWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageWidgets.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4CF3 /* WindowConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowConfigurator.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4CDD /* VideoPaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPaneView.swift; sourceTree = "<group>"; };
@@ -57,6 +63,10 @@
 		7A1C0DE5A9B34F6E8D2B4C55 /* EqualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerView.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4C11 /* Widgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widgets.swift; sourceTree = "<group>"; };
 		B1C828675C5B481C91B460EF /* Layouts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layouts.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D09 /* WMPSkinBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMPSkinBuilder.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D07 /* WMPArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMPArtwork.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D01 /* WMSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMSParser.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D03 /* WMZImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMZImporter.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4CF5 /* SkinImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinImages.swift; sourceTree = "<group>"; };
 		DC92C522975044D0A4A57D7B /* Skin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skin.swift; sourceTree = "<group>"; };
 		E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinSettingsView.swift; sourceTree = "<group>"; };
@@ -106,6 +116,7 @@
 				7A1C0DE5A9B34F6E8D2B4CDD /* VideoPaneView.swift */,
 				7A1C0DE5A9B34F6E8D2B4CF3 /* WindowConfigurator.swift */,
 				7A1C0DE5A9B34F6E8D2B4CF1 /* ImageWidgets.swift */,
+				7A1C0DE5A9B34F6E8D2B4D05 /* WMPImportView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -134,6 +145,10 @@
 			children = (
 				DC92C522975044D0A4A57D7B /* Skin.swift */,
 				7A1C0DE5A9B34F6E8D2B4CF5 /* SkinImages.swift */,
+				7A1C0DE5A9B34F6E8D2B4D03 /* WMZImporter.swift */,
+				7A1C0DE5A9B34F6E8D2B4D01 /* WMSParser.swift */,
+				7A1C0DE5A9B34F6E8D2B4D07 /* WMPArtwork.swift */,
+				7A1C0DE5A9B34F6E8D2B4D09 /* WMPSkinBuilder.swift */,
 				66443583C7094234B1EAF7E5 /* SkinManager.swift */,
 			);
 			path = Skins;
@@ -229,6 +244,10 @@
 				733BB548F47C4A88AB4C9538 /* Track.swift in Sources */,
 				F52429F3839B44AC8595F442 /* Skin.swift in Sources */,
 				7A1C0DE5A9B34F6E8D2B4CF6 /* SkinImages.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D04 /* WMZImporter.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D02 /* WMSParser.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D08 /* WMPArtwork.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D0A /* WMPSkinBuilder.swift in Sources */,
 				F692CF94427E4E95BA2E16E0 /* SkinManager.swift in Sources */,
 				69529A9B3764418184D9A219 /* Components.swift in Sources */,
 				CED177BAEDE14875ACCB5A59 /* GetView.swift in Sources */,
@@ -241,6 +260,7 @@
 				7A1C0DE5A9B34F6E8D2B4CEE /* VideoPaneView.swift in Sources */,
 				7A1C0DE5A9B34F6E8D2B4CF4 /* WindowConfigurator.swift in Sources */,
 				7A1C0DE5A9B34F6E8D2B4CF2 /* ImageWidgets.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D06 /* WMPImportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

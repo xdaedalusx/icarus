@@ -64,6 +64,9 @@ struct PlayerView: View {
         .sheet(isPresented: $appState.showingEQ) {
             EqualizerView()
         }
+        .sheet(isPresented: $appState.showingPlaylist) {
+            PlaylistSheet()
+        }
         .overlay(alignment: .bottom) {
             if let message = engine.errorMessage {
                 Text(message)
@@ -99,5 +102,26 @@ struct PlayerView: View {
             }
         }
         return accepted
+    }
+}
+
+/// The playlist in its own window, for skins that don't have room for one.
+struct PlaylistSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.skin) private var skin
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Playlist").font(.headline)
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
+            }
+            .padding(12)
+            Divider()
+            PlaylistView()
+        }
+        .frame(width: 380, height: 440)
+        .background(skin.isShaped ? Color(nsColor: .windowBackgroundColor) : skin.background)
     }
 }

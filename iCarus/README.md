@@ -124,3 +124,37 @@ Skins can be built from their own artwork instead of the built-in look. New widg
 
 **Try it:** Settings (⌘,) → Import Skin Folder… → pick `SampleSkins/ImageDemo`.
 It's a small shaped radio that uses every feature above.
+
+## Importing Windows Media Player skins (in progress)
+
+Settings (⌘,) has an **Import WMP Skin…** button. Piece 1 of the importer is done: it unzips a
+`.wmz`, reads its `.wms` layout with a forgiving parser (`WMSParser`; real skins aren't valid XML)
+and shows a report of the controls, images and script it found. It doesn't install anything yet.
+Piece 2 is done too: `WMPArtwork` converts the skin's bitmaps to PNGs (the layout's
+`transparencyColor` / `clippingColor` pixels become transparent) and finds each button inside its
+sprite strip from the colour-coded mapping images. The report shows both.
+Piece 3 is done: the report sheet has an **Install Skin** button. `WMPSkinBuilder` stacks the
+pictures in WMP's order (children above their parent, negative `zIndex` underneath, which is how
+Cerulean's eye shows through the face) on a shaped window of the layout's size, writes a `skin.json`
+and installs it like any other skin. To get back to another skin, use Settings (⌘,).
+Piece 4 is done: the builder now turns the skin's controls into working widgets: the transport
+buttons (previous / play / pause / stop / next, using their mapped boxes cropped from the sprite
+strips, with hover, pressed and disabled pictures), the seek slider (the track, thumb and
+`borderSize` end caps), the title and time text (new plain text style, new `positionTime`
+binding), and the minimize / close buttons. Simple positions like `jscript:metadata.top` are resolved.
+Piece 5 is done: the skin's `effects` window becomes a bare visualizer sitting behind the face
+(so it shows through the eye), the small "next visualization" button cycles bars / waveform /
+radial / off, and the Audio controls and Playlist buttons open the Equalizer and a new Playlist
+window (also ⌘L). New bindings: `showEqualizer`, `showPlaylist`, `nextVisualization`.
+Not carried over: sliding panes, scrolling title text, and the video window (the skin hides it by
+script until a video plays).
+
+### Other `.wmz` skins
+
+The builder isn't Cerulean-specific. It recognises clicks such as `controls.play/pause/stop/next/previous`,
+`view.minimize/close`, effects/visualization "next", equalizer and playlist panes, shuffle and repeat;
+sliders by tag or by their `value` (position, volume, balance, `eq.gainLevelN`); text by tag or by
+`wmpprop:` values (title, artist, position, duration); and falls back to the background picture's size
+when the view has no width/height. After **Install Skin** a short summary lists what was skipped:
+unrecognised buttons and sliders, text labels, other elements, positions worked out by script, and
+elements the skin hides until a script shows them. Only Cerulean has been checked so far.

@@ -32,6 +32,7 @@ struct ImageLayerWidget: View {
 struct ImageButtonWidget: View {
     let spec: WidgetSpec
     @EnvironmentObject private var engine: PlayerEngine
+    @EnvironmentObject private var appState: AppState
     @Environment(\.skin) private var skin
     @State private var hovering = false
 
@@ -44,7 +45,7 @@ struct ImageButtonWidget: View {
         let on = isToggle && engine.isOn(spec.binding)
 
         Button {
-            performWidgetAction(spec.binding, engine: engine)
+            performWidgetAction(spec.binding, engine: engine, appState: appState)
         } label: {
             Color.clear   // the style below draws the artwork
         }

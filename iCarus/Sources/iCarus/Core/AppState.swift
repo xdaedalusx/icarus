@@ -21,4 +21,5 @@ final class AppState: ObservableObject {
     /// Driven by menu commands so they work even when the toolbar is hidden (shaped skins).
     @Published var showingImporter = false
     @Published var showingEQ = false
+    @Published var showingPlaylist = false
 }

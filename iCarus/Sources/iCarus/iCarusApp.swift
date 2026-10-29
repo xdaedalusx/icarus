@@ -47,6 +47,11 @@ struct iCarusApp: App {
                     appState.showingEQ = true
                 }
                 .keyboardShortcut("e", modifiers: .command)
+                Button("Playlist") {
+                    appState.section = .play
+                    appState.showingPlaylist = true
+                }
+                .keyboardShortcut("l", modifiers: .command)
             }
             CommandMenu("Playback") {
                 Button("Play / Pause") { engine.togglePlayPause() }
