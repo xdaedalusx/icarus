@@ -77,9 +77,29 @@ private struct VideoPaneContent: View {
 /// (Ignores its binding.)
 struct VideoPaneWidget: View {
     let spec: WidgetSpec
+    @EnvironmentObject private var engine: PlayerEngine
 
     var body: some View {
-        VideoPaneView()
-            .frame(width: spec.width, height: spec.height)
+        if spec.bare == true {
+            // The skin's own artwork supplies the screen; only the picture itself is drawn.
+            BareVideo(video: engine.video)
+                .frame(width: spec.width, height: spec.height)
+                .allowsHitTesting(false)
+        } else {
+            VideoPaneView()
+                .frame(width: spec.width, height: spec.height)
+        }
+    }
+}
+
+private struct BareVideo: View {
+    @ObservedObject var video: VideoController
+
+    var body: some View {
+        if video.isActive {
+            VideoSurface(player: video.player)
+        } else {
+            Color.clear
+        }
     }
 }

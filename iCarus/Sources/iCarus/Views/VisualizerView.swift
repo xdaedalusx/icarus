@@ -7,6 +7,15 @@ enum VisualizerStyle: String, Codable, CaseIterable, Identifiable {
 
     /// Click-to-cycle order: off -> bars -> waveform -> radial -> off.
     /// "Off" is stored as any string that isn't a style.
+    static func cycleBack(after raw: String) -> String {
+        switch VisualizerStyle(rawValue: raw) {
+        case nil: return VisualizerStyle.radial.rawValue
+        case .radial: return VisualizerStyle.waveform.rawValue
+        case .waveform: return VisualizerStyle.bars.rawValue
+        case .bars: return "off"
+        }
+    }
+
     static func cycle(after raw: String) -> String {
         switch VisualizerStyle(rawValue: raw) {
         case nil: return VisualizerStyle.bars.rawValue
@@ -116,7 +125,8 @@ struct VisualizerWidget: View {
     var body: some View {
         if spec.bare == true {
             Group {
-                if let style { VisualizerView(style: style) }
+                // A picture of the video replaces the visualizer while a video plays.
+                if let style, engine.currentTrack?.hasVideo != true { VisualizerView(style: style) }
             }
             .frame(width: spec.width, height: spec.height)
             .allowsHitTesting(false)

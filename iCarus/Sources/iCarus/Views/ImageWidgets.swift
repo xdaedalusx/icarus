@@ -153,3 +153,86 @@ struct ImageSliderWidget: View {
         )
     }
 }
+
+// MARK: - Filmstrip slider (custom-shaped controls, e.g. a volume dial along an arc)
+//
+// image          a strip of equally wide pictures, one per position (first = lowest)
+// positionImage  a grey "map" the size of ONE picture; the grey level under the pointer
+//                (black = low, white = high) is the value. Transparent pixels are ignored.
+// frames         how many pictures the strip holds
+
+struct FilmstripSliderWidget: View {
+    let spec: WidgetSpec
+    @EnvironmentObject private var engine: PlayerEngine
+    @Environment(\.skin) private var skin
+    @State private var dragValue: Double?
+    @State private var map: PositionMap?
+
+    private var value: Double { dragValue ?? engine.value(for: spec.binding) }
+
+    var body: some View {
+        let frames = max(spec.frames ?? 1, 1)
+        let frame = min(max(Int((value * Double(frames - 1)).rounded()), 0), frames - 1)
+        let width = spec.width
+        let height = spec.height
+
+        Group {
+            if let picture = skin.image(named: spec.image,
+                                        crop: [Double(frame) * width, 0, width, height]) {
+                Image(decorative: picture, scale: 1).resizable()
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: width, height: height)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { drag in
+                    if map == nil { map = PositionMap(skin.image(named: spec.positionImage)) }
+                    guard let newValue = map?.value(x: drag.location.x, y: drag.location.y) else { return }
+                    dragValue = newValue
+                    if spec.binding.appliesLive { engine.setValue(newValue, for: spec.binding) }
+                }
+                .onEnded { _ in
+                    if let dragValue, !spec.binding.appliesLive {
+                        engine.setValue(dragValue, for: spec.binding)
+                    }
+                    dragValue = nil
+                }
+        )
+    }
+}
+
+/// A picture read into plain bytes so the grey level under the pointer can be looked up.
+struct PositionMap {
+    let width: Int
+    let height: Int
+    private let pixels: [UInt8]   // RGBA, premultiplied, top row first
+
+    init?(_ image: CGImage?) {
+        guard let image else { return nil }
+        let w = image.width, h = image.height
+        var data = [UInt8](repeating: 0, count: w * h * 4)
+        let drawn = data.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: w, height: h,
+                                          bitsPerComponent: 8, bytesPerRow: w * 4,
+                                          space: CGColorSpaceCreateDeviceRGB(),
+                                          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
+            return true
+        }
+        guard drawn else { return nil }
+        width = w; height = h; pixels = data
+    }
+
+    /// 0...1 from the grey level at a point, or nil outside the drawn area.
+    func value(x: CGFloat, y: CGFloat) -> Double? {
+        let px = Int(x), py = Int(y)
+        guard px >= 0, py >= 0, px < width, py < height else { return nil }
+        let i = (py * width + px) * 4
+        let alpha = Double(pixels[i + 3])
+        guard alpha > 128 else { return nil }
+        return min(max(Double(pixels[i]) / alpha, 0), 1)
+    }
+}

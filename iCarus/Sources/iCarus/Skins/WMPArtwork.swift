@@ -100,8 +100,15 @@ enum WMPArtwork {
         var keysByImage: [String: [RGB]] = [:]
         var shownName: [String: String] = [:]
         var mappingNodes: [WMSNode] = []
+        // Many skins declare their transparent / outside colour once, on the <view>, and expect it
+        // to apply to the other pictures too (e.g. hover and disabled strips).
+        func colourKeys(_ node: WMSNode) -> [RGB] {
+            [node.attr("transparencycolor"), node.attr("clippingcolor")].compactMap { RGB.parse($0) }
+        }
+        let viewKeys = root.allNodes.first(where: { $0.tag == "view" }).map(colourKeys) ?? []
         for node in root.allNodes {
-            let keys = [node.attr("transparencycolor"), node.attr("clippingcolor")].compactMap { RGB.parse($0) }
+            let own = colourKeys(node)
+            let keys = own.isEmpty ? viewKeys : own
             for (attribute, raw) in node.attributes where attribute.hasSuffix("image") {
                 guard let name = pictureName(raw) else { continue }
                 if attribute == "mappingimage" {
@@ -158,7 +165,9 @@ enum WMPArtwork {
                 regions.append(WMPButtonRegion(element: child.tag,
                                                label: label(for: child),
                                                mappingColor: hex.uppercased(),
-                                               rect: map.boundingBox(of: color, tolerance: 24),
+                                               // Exact match first (some skins use near-identical colours).
+                                               rect: map.boundingBox(of: color, tolerance: 0)
+                                                   ?? map.boundingBox(of: color, tolerance: 24),
                                                onClick: child.attr("onclick")))
             }
             result.buttonGroups.append(WMPButtonGroup(

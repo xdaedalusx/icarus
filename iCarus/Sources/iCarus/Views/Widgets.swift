@@ -22,6 +22,7 @@ enum WidgetKind: String, Codable {
     case image          // static artwork: faceplate, decoration
     case imageButton    // button with up / hover / down / disabled images
     case imageSlider    // track + optional fill + thumb images
+    case filmstripSlider // one picture per position side by side, plus a grey "position map"
 }
 
 enum WidgetBinding: String, Codable {
@@ -42,7 +43,8 @@ enum WidgetBinding: String, Codable {
     // transport + window actions (button)
     case play, pause, stop, closeWindow, minimizeWindow
     // panels and visualizer (button)
-    case showEqualizer, showPlaylist, nextVisualization
+    case showEqualizer, showPlaylist, nextVisualization, previousVisualization
+    case openFiles, skipBack, skipForward
 
     /// Which EQ band this binding controls, if any.
     var eqBandIndex: Int? {
@@ -100,6 +102,9 @@ struct WidgetSpec: Codable, Equatable, Identifiable {
     var align: String?
     /// Visualization: draw with no panel behind it (the skin's artwork frames it).
     var bare: Bool?
+    /// Filmstrip slider: the grey position map's file, and how many pictures the strip holds.
+    var positionImage: String?
+    var frames: Int?
 }
 
 struct WidgetLayout: Codable, Equatable {
@@ -156,6 +161,9 @@ extension PlayerEngine {
         case .pause: if isPlaying { togglePlayPause() }
         case .stop: stop()
         case .nextVisualization: visualizerChoice = VisualizerStyle.cycle(after: visualizerChoice)
+        case .previousVisualization: visualizerChoice = VisualizerStyle.cycleBack(after: visualizerChoice)
+        case .skipBack: seek(to: max(0, currentTime - 10))
+        case .skipForward: seek(to: min(max(duration - 0.5, 0), currentTime + 10))
         default: break
         }
     }
@@ -164,6 +172,7 @@ extension PlayerEngine {
     func isEnabled(_ binding: WidgetBinding) -> Bool {
         switch binding {
         case .playPause, .play, .next, .previous: return !queue.isEmpty
+        case .skipBack, .skipForward: return currentTrack != nil
         case .pause: return isPlaying
         case .stop: return currentTrack != nil
         default: return true
@@ -198,6 +207,7 @@ func performWidgetAction(_ binding: WidgetBinding, engine: PlayerEngine, appStat
     switch binding {
     case .showEqualizer: appState?.showingEQ = true
     case .showPlaylist: appState?.showingPlaylist = true
+    case .openFiles: appState?.showingImporter = true
     case .closeWindow: NSApp.keyWindow?.performClose(nil)
     case .minimizeWindow: NSApp.keyWindow?.miniaturize(nil)
     default: engine.trigger(binding)
@@ -260,6 +270,7 @@ struct WidgetView: View {
             case .image: ImageLayerWidget(spec: spec)
             case .imageButton: ImageButtonWidget(spec: spec)
             case .imageSlider: ImageSliderWidget(spec: spec)
+            case .filmstripSlider: FilmstripSliderWidget(spec: spec)
             }
         }
         .frame(width: spec.width, height: spec.height)

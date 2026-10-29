@@ -40,6 +40,8 @@ enum WMPSkinBuilder {
         var skipped: [String: Int] = [:]
         var hidden = 0
         var unresolved = 0
+        /// The view's own background picture: the "up" state for button groups that name no picture.
+        var backdrop: String?
         /// id -> (left, top) relative to its parent, so "jscript:other.top+21" can be resolved.
         var ids: [String: (left: Double, top: Double)] = [:]
 
@@ -71,6 +73,7 @@ enum WMPSkinBuilder {
         var context = Context()
         for image in artwork.images { context.images[key(image.source)] = image }
         context.groups = artwork.buttonGroups
+        context.backdrop = view.attr("backgroundimage") ?? view.attr("image")
 
         // Window size: the layout's, or else the size of its background picture.
         let backdrop = context.image(view.attr("backgroundimage") ?? view.attr("image"))
@@ -116,7 +119,11 @@ enum WMPSkinBuilder {
     /// Elements whose picture only appears in some state (a script decides), so they stay out.
     private static let stateDriven: Set<String> = ["returnbutton"]
 
-    private static func z(_ node: WMSNode) -> Int { Int(number(node.attr("zindex")) ?? 0) }
+    /// Video is a real window in WMP, so it always sits above the skin's picture whatever its zIndex.
+    private static func z(_ node: WMSNode) -> Int {
+        let value = Int(number(node.attr("zindex")) ?? 0)
+        return node.tag == "video" ? max(value, 0) : value
+    }
 
     /// Adds `node`'s own picture / control and its children's, bottom to top.
     private static func emit(_ node: WMSNode, originX: Double, originY: Double, context: inout Context) {
@@ -165,6 +172,7 @@ enum WMPSkinBuilder {
     private static let organising: Set<String> = [
         "view", "subview", "theme", "player", "equalizersettings", "effects",
         "button", "buttongroup", "seekslider", "volumeslider", "balanceslider", "slider",
+        "progressbar", "customslider", "video", "controls",
         "statustext", "currentpositiontext", "text"
     ]
 
@@ -173,8 +181,12 @@ enum WMPSkinBuilder {
         switch node.tag {
         case "buttongroup":
             drawButtonGroup(node, x: x, y: y, context: &context)
-        case "seekslider", "volumeslider", "balanceslider", "slider":
+        case "seekslider", "volumeslider", "balanceslider", "slider", "progressbar":
             drawSlider(node, x: x, y: y, context: &context)
+        case "customslider":
+            drawFilmstrip(node, x: x, y: y, context: &context)
+        case "video":
+            drawVideo(node, x: x, y: y, context: &context)
         case "statustext":
             drawText(node, binding: .trackTitle, x: x, y: y, context: &context)
         case "currentpositiontext":
@@ -218,6 +230,11 @@ enum WMPSkinBuilder {
         if c.contains("controls.next") { return .next }
         if c.contains("controls.previous") { return .previous }
         if c.contains("controls.play") && !c.contains("playlist") { return .play }
+        if c.contains("effects.previous") { return .previousVisualization }
+        if c.contains("controls.fastreverse") { return .skipBack }
+        if c.contains("controls.fastforward") { return .skipForward }
+        if c.contains("opendialog") { return .openFiles }
+        if c.contains("playview") { return .showPlaylist }
         if c.contains("effects.next") || c.contains("viseffects.next") || c.contains("nextpreset") { return .nextVisualization }
         if c.contains("audpane") || c.contains("equalizer") { return .showEqualizer }
         if c.contains("plpane") || c.contains("playlist") { return .showPlaylist }
@@ -235,6 +252,8 @@ enum WMPSkinBuilder {
         case "nextelement": return .next
         case "shuffleelement": return .shuffle
         case "repeatelement": return .repeatMode
+        case "rewelement": return .skipBack
+        case "ffwdelement": return .skipForward
         case "buttonelement": return action(forClick: element.attr("onclick"))
         default: return nil
         }
@@ -269,13 +288,14 @@ enum WMPSkinBuilder {
 
         // If some buttons aren't wired, keep the whole strip as a picture so their icons still
         // show; fully wired groups are drawn by their buttons alone.
-        if working.count < elements.count || working.isEmpty {
+        if (working.count < elements.count || working.isEmpty), node.attr("image") != nil {
             drawPicture(node, x: x, y: y, context: &context)
         }
 
-        let up = context.file(node.attr("image"))
+        // No `image` means the buttons sit on the view's own background picture.
+        let up = context.file(node.attr("image")) ?? context.file(context.backdrop)
         let hover = context.file(node.attr("hoverimage"))
-        let down = context.file(node.attr("downimage"))
+        let down = context.file(node.attr("downimage")) ?? hover
         let disabled = context.file(node.attr("disabledimage"))
         for (element, action, rect) in working {
             let label = (element.attr("id") ?? element.tag)
@@ -331,7 +351,7 @@ enum WMPSkinBuilder {
 
     private static func sliderBinding(_ node: WMSNode) -> WidgetBinding? {
         switch node.tag {
-        case "seekslider": return .seek
+        case "seekslider", "progressbar": return .seek
         case "volumeslider": return .volume
         case "balanceslider": return .balance
         default: break
@@ -376,6 +396,37 @@ enum WMPSkinBuilder {
                        fillImage: fill,
                        vertical: vertical ? true : nil,
                        inset: border + thumbLength / 2)
+        }
+    }
+
+    /// A control drawn as a strip of pictures, one per position (e.g. a volume dial).
+    private static func drawFilmstrip(_ node: WMSNode, x: Double, y: Double, context: inout Context) {
+        guard let action = sliderBinding(node) else {
+            context.skip("custom slider (no matching control)")
+            return
+        }
+        guard let strip = context.image(node.attr("image")),
+              let map = context.image(node.attr("positionimage")), map.width > 0 else {
+            context.skip("custom slider without its pictures")
+            return
+        }
+        let w = Double(map.width), h = Double(map.height)
+        let frames = max(strip.width / map.width, 1)
+        context.controls += 1
+        context.add("customslider") { id in
+            WidgetSpec(id: id, kind: .filmstripSlider, binding: action,
+                       x: x + w / 2, y: y + h / 2, width: w, height: h,
+                       image: strip.output, positionImage: map.output, frames: frames)
+        }
+    }
+
+    /// The skin's video window: shows the picture only while a video plays.
+    private static func drawVideo(_ node: WMSNode, x: Double, y: Double, context: inout Context) {
+        guard let w = number(node.attr("width")), let h = number(node.attr("height")) else { return }
+        context.controls += 1
+        context.add("video") { id in
+            WidgetSpec(id: id, kind: .videoPane, binding: .play,
+                       x: x + w / 2, y: y + h / 2, width: w, height: h, bare: true)
         }
     }
 

@@ -67,10 +67,11 @@ enum WMZImporter {
         "view", "subview", "button", "buttongroup", "buttonelement",
         "playelement", "pauseelement", "stopelement", "prevelement", "nextelement",
         "seekslider", "volumeslider", "balanceslider", "slider",
-        "text", "statustext", "currentpositiontext", "effects", "video"
+        "text", "statustext", "currentpositiontext", "effects", "video",
+        "progressbar", "customslider", "rewelement", "ffwdelement", "shuffleelement", "repeatelement"
     ]
     /// Elements that only organise or describe the skin.
-    static let structural: Set<String> = ["theme", "player", "equalizersettings"]
+    static let structural: Set<String> = ["theme", "player", "controls", "equalizersettings"]
 
     // MARK: Inspect
 
