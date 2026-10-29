@@ -139,7 +139,9 @@ final class DownloadManager: ObservableObject {
             args += ["-f", "bv*[vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]/b",
                      "--merge-output-format", "mp4"]
         }
-        args += ["--embed-metadata", "--embed-thumbnail",
+        // YouTube thumbnails are WebP, which ffmpeg can't reliably embed in MP3/M4A, so they are
+        // converted to JPG first. The cover art then travels inside the file and the player shows it.
+        args += ["--embed-metadata", "--embed-thumbnail", "--convert-thumbnails", "jpg",
                  "--print", "after_move:filepath", "--no-quiet",
                  "-o", folder.appendingPathComponent("%(title)s.%(ext)s").path]
         if singleOnly { args.append("--no-playlist") }
@@ -237,7 +239,7 @@ final class DownloadManager: ObservableObject {
             return
         }
 
-        if trimmed.hasPrefix("[ExtractAudio]") || trimmed.hasPrefix("[Metadata]") || trimmed.hasPrefix("[EmbedThumbnail]") {
+        if trimmed.hasPrefix("[ExtractAudio]") || trimmed.hasPrefix("[Metadata]") || trimmed.hasPrefix("[EmbedThumbnail]") || trimmed.hasPrefix("[ThumbnailsConvertor]") {
             statusText = "\(itemPrefix)Converting and tagging…"
             progress = nil
         }

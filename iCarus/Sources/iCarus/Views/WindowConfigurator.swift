@@ -54,7 +54,8 @@ struct WindowConfigurator: NSViewRepresentable {
                 window.isOpaque = false
                 window.backgroundColor = .clear
                 window.hasShadow = true
-                window.isMovableByWindowBackground = true
+                window.isMovableByWindowBackground = false   // WindowDragSurface does the dragging
+                window.ignoresMouseEvents = false
                 window.setContentSize(size)
                 // The shadow follows the artwork's outline; recompute it now and once more
                 // after the new content has drawn.
@@ -71,5 +72,42 @@ struct WindowConfigurator: NSViewRepresentable {
                 window.isMovableByWindowBackground = false
             }
         }
+    }
+}
+
+/// An invisible surface that moves the window when you press and drag on it.
+/// Controls drawn above it keep their own clicks; the skin's pictures ignore clicks, so a press on
+/// the artwork lands here. It follows the mouse itself (no AppKit view in the way).
+struct WindowDragSurface: View {
+    @State private var startMouse: NSPoint?
+    @State private var startOrigin: NSPoint?
+
+    private var window: NSWindow? {
+        NSApp.keyWindow
+            ?? NSApp.mainWindow
+            ?? NSApp.windows.first { $0.isVisible && !($0 is NSPanel) }
+    }
+
+    var body: some View {
+        Color.clear
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                    .onChanged { _ in
+                        guard let window else { return }
+                        let mouse = NSEvent.mouseLocation
+                        if startMouse == nil {
+                            startMouse = mouse
+                            startOrigin = window.frame.origin
+                        }
+                        guard let startMouse, let startOrigin else { return }
+                        window.setFrameOrigin(NSPoint(x: startOrigin.x + mouse.x - startMouse.x,
+                                                      y: startOrigin.y + mouse.y - startMouse.y))
+                    }
+                    .onEnded { _ in
+                        startMouse = nil
+                        startOrigin = nil
+                    }
+            )
     }
 }

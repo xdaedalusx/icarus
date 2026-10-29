@@ -228,6 +228,12 @@ struct WidgetCanvas: View {
             let scale = min(geo.size.width / layout.canvasWidth,
                             geo.size.height / layout.canvasHeight)
             ZStack(alignment: .topLeading) {
+                // Pictures ignore clicks (so they never block a control), which would leave nothing
+                // to grab. This invisible layer underneath lets you drag the window by the artwork.
+                if layout.shaped == true {
+                    WindowDragSurface()
+                        .frame(width: layout.canvasWidth, height: layout.canvasHeight)
+                }
                 if layout.showsFaceplate != false { faceplate }
                 ForEach(layout.widgets) { spec in
                     WidgetView(spec: spec)

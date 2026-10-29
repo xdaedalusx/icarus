@@ -139,8 +139,13 @@ enum WMPSkinBuilder {
         }
 
         // Stable sort by zIndex (document order breaks ties).
+        // (A video window goes before the visualizer when they share a level, so the visualizer
+        // is drawn over the picture / cover art.)
         let ordered = node.children.enumerated().sorted { a, b in
-            z(a.element) != z(b.element) ? z(a.element) < z(b.element) : a.offset < b.offset
+            if z(a.element) != z(b.element) { return z(a.element) < z(b.element) }
+            let videoA = a.element.tag == "video", videoB = b.element.tag == "video"
+            if videoA != videoB { return videoA }
+            return a.offset < b.offset
         }.map { $0.element }
 
         for child in ordered where z(child) < 0 {

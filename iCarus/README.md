@@ -166,3 +166,12 @@ and disabled strips; `progressbar` works as a seek bar; `customslider` (a filmst
 grey position map, like a dial along an arc) works as a new `filmstripSlider` widget; the `video`
 element shows the picture only while a video plays (the visualizer steps aside); and new bindings
 `previousVisualization`, `openFiles`, `skipBack` / `skipForward` (±10 s, from rewind / fast-forward).
+
+## Cover art
+
+Get now converts the YouTube thumbnail to JPG (`--convert-thumbnails jpg`) before embedding it, because
+the original WebP can't be embedded reliably in MP3/M4A. The player reads the cover art from the file
+(or a same-named `.jpg`/`.png` next to it) and shows it where a video would be, with the visualizer
+along the bottom if it's on (click to change it). Imported skins show it in their video window.
+Songs downloaded before this change have no embedded picture; to get one, download them again
+(turn off "skip songs I already have", or delete their line in `.downloaded.txt`).

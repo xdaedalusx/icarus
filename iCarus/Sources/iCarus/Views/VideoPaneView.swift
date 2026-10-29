@@ -52,6 +52,7 @@ struct VideoPaneView: View {
 
 private struct VideoPaneContent: View {
     @ObservedObject var video: VideoController
+    @EnvironmentObject private var engine: PlayerEngine
     @Environment(\.skin) private var skin
 
     var body: some View {
@@ -59,6 +60,14 @@ private struct VideoPaneContent: View {
             Color.black
             if video.isActive {
                 VideoSurface(player: video.player)
+            } else if let artwork = engine.currentTrack?.artwork {
+                GeometryReader { geo in
+                    Image(nsImage: artwork)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                }
             } else {
                 Image(systemName: "film")
                     .font(.system(size: 28))
@@ -94,10 +103,20 @@ struct VideoPaneWidget: View {
 
 private struct BareVideo: View {
     @ObservedObject var video: VideoController
+    @EnvironmentObject private var engine: PlayerEngine
 
     var body: some View {
         if video.isActive {
             VideoSurface(player: video.player)
+        } else if let artwork = engine.currentTrack?.artwork {
+            // No video: show the song's cover art / thumbnail in the skin's screen.
+            GeometryReader { geo in
+                Image(nsImage: artwork)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
         } else {
             Color.clear
         }

@@ -30,6 +30,14 @@ struct ArtworkPlaceholder: View {
     @AppStorage("visualizerStyle") private var styleRaw = VisualizerStyle.bars.rawValue
 
     private var showsVideo: Bool { engine.currentTrack?.hasVideo == true }
+    private var artwork: NSImage? { showsVideo ? nil : engine.currentTrack?.artwork }
+
+    /// The picture's shape, kept between square and widescreen so nothing is cropped too hard.
+    private var frameRatio: CGFloat {
+        if showsVideo { return 16.0 / 9.0 }
+        guard let size = artwork?.size, size.height > 0 else { return 1 }
+        return min(max(size.width / size.height, 1), 16.0 / 9.0)
+    }
 
     var body: some View {
         RoundedRectangle(cornerRadius: skin.cornerRadius)
@@ -37,6 +45,26 @@ struct ArtworkPlaceholder: View {
             .overlay {
                 if showsVideo {
                     VideoPaneView()
+                } else if let artwork {
+                    // The downloaded thumbnail, with the visualizer along the bottom if it's on.
+                    GeometryReader { geo in
+                        ZStack(alignment: .bottom) {
+                            Image(nsImage: artwork)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .clipped()
+                            if let style = VisualizerStyle(rawValue: styleRaw) {
+                                VisualizerView(style: style)
+                                    .frame(height: geo.size.height * 0.35)
+                                    .padding(10)
+                                    .background(
+                                        LinearGradient(colors: [.clear, .black.opacity(0.55)],
+                                                       startPoint: .top, endPoint: .bottom)
+                                    )
+                            }
+                        }
+                    }
                 } else if let style = VisualizerStyle(rawValue: styleRaw) {
                     VisualizerView(style: style).padding(16)
                 } else {
@@ -45,6 +73,7 @@ struct ArtworkPlaceholder: View {
                         .foregroundStyle(skin.accent.opacity(0.8))
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: skin.cornerRadius))
             .overlay(alignment: .bottomTrailing) {
                 if !showsVideo {
                     Image(systemName: "waveform")
@@ -54,7 +83,7 @@ struct ArtworkPlaceholder: View {
                 }
             }
             // Video gets a widescreen frame; audio keeps the square.
-            .aspectRatio(showsVideo ? 16.0 / 9.0 : 1, contentMode: .fit)
+            .aspectRatio(frameRatio, contentMode: .fit)
             .contentShape(Rectangle())
             .onTapGesture { if !showsVideo { styleRaw = VisualizerStyle.cycle(after: styleRaw) } }
             .help(showsVideo ? "" : "Click to change the visualization")
