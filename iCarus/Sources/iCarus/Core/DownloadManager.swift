@@ -39,6 +39,14 @@ final class DownloadManager: ObservableObject {
     @Published var singleOnly: Bool {
         didSet { UserDefaults.standard.set(singleOnly, forKey: Keys.single) }
     }
+    /// Settings from Get's Advanced tab.
+    @Published var advanced: AdvancedOptions {
+        didSet {
+            if let data = try? JSONEncoder().encode(advanced) {
+                UserDefaults.standard.set(data, forKey: Keys.advanced)
+            }
+        }
+    }
 
     // MARK: Outputs
     @Published private(set) var isRunning = false
@@ -56,6 +64,7 @@ final class DownloadManager: ObservableObject {
         static let format = "downloadFormat"
         static let skip = "downloadSkipExisting"
         static let single = "downloadSingleOnly"
+        static let advanced = "downloadAdvanced"
     }
 
     private var process: Process?
@@ -81,6 +90,8 @@ final class DownloadManager: ObservableObject {
         format = AudioFormat(rawValue: defaults.string(forKey: Keys.format) ?? "") ?? .mp3
         skipExisting = defaults.object(forKey: Keys.skip) as? Bool ?? true
         singleOnly = defaults.object(forKey: Keys.single) as? Bool ?? true
+        advanced = defaults.data(forKey: Keys.advanced)
+            .flatMap { try? JSONDecoder().decode(AdvancedOptions.self, from: $0) } ?? AdvancedOptions()
         refreshTools()
     }
 
@@ -106,6 +117,32 @@ final class DownloadManager: ObservableObject {
         }
     }
 
+    /// The full yt-dlp argument list for a link (also used for the Advanced tab's preview).
+    func makeArguments(link: String) -> [String] {
+        var args = ["--newline", "--no-colors", "--progress"]
+        args += advanced.formatArguments(for: format)
+        args += advanced.extraFlags(format: format, singleOnly: singleOnly)
+        args += ["--print", "after_move:filepath", "--no-quiet",
+                 "-o", folder.appendingPathComponent(advanced.template + ".%(ext)s").path]
+        if singleOnly { args.append("--no-playlist") }
+        if skipExisting {
+            args += ["--download-archive", folder.appendingPathComponent(".downloaded.txt").path]
+        }
+        args.append(link)
+        return args
+    }
+
+    /// The same command as text you could paste into Terminal.
+    func commandPreview() -> String {
+        let link = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let args = makeArguments(link: link.isEmpty ? "<link>" : link)
+        let quoted = args.map { arg -> String in
+            let safe = arg.range(of: #"^[A-Za-z0-9_@%+=:,./\-]+$"#, options: .regularExpression) != nil
+            return safe ? arg : "'" + arg.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        }
+        return (["yt-dlp"] + quoted).joined(separator: " ")
+    }
+
     // MARK: Start / stop
     func start() {
         guard !isRunning else { return }
@@ -128,27 +165,11 @@ final class DownloadManager: ObservableObject {
             return
         }
 
-        var args = ["--newline", "--no-colors", "--progress"]
-        switch format {
-        case .mp3:
-            args += ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
-        case .m4a:
-            args += ["-x", "--audio-format", "m4a"]
-        case .mp4:
-            // Prefer H.264 + AAC so AVFoundation can play both picture and sound.
-            args += ["-f", "bv*[vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]/b",
-                     "--merge-output-format", "mp4"]
+        if let problem = advanced.problem() {
+            statusText = problem
+            return
         }
-        // YouTube thumbnails are WebP, which ffmpeg can't reliably embed in MP3/M4A, so they are
-        // converted to JPG first. The cover art then travels inside the file and the player shows it.
-        args += ["--embed-metadata", "--embed-thumbnail", "--convert-thumbnails", "jpg",
-                 "--print", "after_move:filepath", "--no-quiet",
-                 "-o", folder.appendingPathComponent("%(title)s.%(ext)s").path]
-        if singleOnly { args.append("--no-playlist") }
-        if skipExisting {
-            args += ["--download-archive", folder.appendingPathComponent(".downloaded.txt").path]
-        }
-        args.append(link)
+        let args = makeArguments(link: link)
 
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: ytdlp)

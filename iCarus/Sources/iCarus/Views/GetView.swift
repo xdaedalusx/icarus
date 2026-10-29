@@ -10,6 +10,12 @@ struct GetView: View {
 
     @State private var choosingFolder = false
     @State private var showLog = false
+    @State private var tab = GetTab.basic
+
+    enum GetTab: String, CaseIterable, Identifiable {
+        case basic = "Basic", advanced = "Advanced"
+        var id: String { rawValue }
+    }
 
     var body: some View {
         ZStack {
@@ -19,11 +25,24 @@ struct GetView: View {
                 header
                 if let problem = downloads.setupProblem { setupBanner(problem) }
                 linkRow
-                options
-                actionRow
-                statusArea
-                completedList
-                logSection
+                Picker("", selection: $tab) {
+                    ForEach(GetTab.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 200)
+
+                if tab == .basic {
+                    options
+                    actionRow
+                    statusArea
+                    completedList
+                    logSection
+                } else {
+                    GetAdvancedView()
+                    actionRow
+                    statusArea
+                }
             }
             .padding(skin.spacing * 1.4)
         }

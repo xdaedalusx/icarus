@@ -30,6 +30,8 @@
 		AA7D27B831E144A6925A3135 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989E366974DF45339937AA66 /* AppState.swift */; };
 		B76D7AAAFC0B4C2CBCAB45AD /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111ABDACD4B8489882F4E67E /* PlayerEngine.swift */; };
 		CED177BAEDE14875ACCB5A59 /* GetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CBE42EFE1D42898D4AAFA5 /* GetView.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D0C /* AdvancedOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D0B /* AdvancedOptions.swift */; };
+		7A1C0DE5A9B34F6E8D2B4D0E /* GetAdvancedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D0D /* GetAdvancedView.swift */; };
 		7A1C0DE5A9B34F6E8D2B4D0A /* WMPSkinBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D09 /* WMPSkinBuilder.swift */; };
 		7A1C0DE5A9B34F6E8D2B4D08 /* WMPArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D07 /* WMPArtwork.swift */; };
 		7A1C0DE5A9B34F6E8D2B4D02 /* WMSParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0DE5A9B34F6E8D2B4D01 /* WMSParser.swift */; };
@@ -63,6 +65,8 @@
 		7A1C0DE5A9B34F6E8D2B4C55 /* EqualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerView.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4C11 /* Widgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widgets.swift; sourceTree = "<group>"; };
 		B1C828675C5B481C91B460EF /* Layouts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layouts.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D0B /* AdvancedOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedOptions.swift; sourceTree = "<group>"; };
+		7A1C0DE5A9B34F6E8D2B4D0D /* GetAdvancedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetAdvancedView.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4D09 /* WMPSkinBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMPSkinBuilder.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4D07 /* WMPArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMPArtwork.swift; sourceTree = "<group>"; };
 		7A1C0DE5A9B34F6E8D2B4D01 /* WMSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMSParser.swift; sourceTree = "<group>"; };
@@ -107,6 +111,7 @@
 			children = (
 				42158E5E01124A53BEC0F508 /* Components.swift */,
 				69CBE42EFE1D42898D4AAFA5 /* GetView.swift */,
+				7A1C0DE5A9B34F6E8D2B4D0D /* GetAdvancedView.swift */,
 				B1C828675C5B481C91B460EF /* Layouts.swift */,
 				6E1DA83BD0764EC1BA6AD33F /* PlayerView.swift */,
 				E3D29BA8F4154D1C866F423E /* SkinSettingsView.swift */,
@@ -159,6 +164,7 @@
 			children = (
 				989E366974DF45339937AA66 /* AppState.swift */,
 				A1E53A38E41544BFA93385F3 /* DownloadManager.swift */,
+				7A1C0DE5A9B34F6E8D2B4D0B /* AdvancedOptions.swift */,
 				380689DC099849ABAFC21304 /* Library.swift */,
 				7A1C0DE5A9B34F6E8D2B4C33 /* Equalizer.swift */,
 				7A1C0DE5A9B34F6E8D2B4C77 /* AudioAnalyzer.swift */,
@@ -248,6 +254,8 @@
 				7A1C0DE5A9B34F6E8D2B4D02 /* WMSParser.swift in Sources */,
 				7A1C0DE5A9B34F6E8D2B4D08 /* WMPArtwork.swift in Sources */,
 				7A1C0DE5A9B34F6E8D2B4D0A /* WMPSkinBuilder.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D0E /* GetAdvancedView.swift in Sources */,
+				7A1C0DE5A9B34F6E8D2B4D0C /* AdvancedOptions.swift in Sources */,
 				F692CF94427E4E95BA2E16E0 /* SkinManager.swift in Sources */,
 				69529A9B3764418184D9A219 /* Components.swift in Sources */,
 				CED177BAEDE14875ACCB5A59 /* GetView.swift in Sources */,
