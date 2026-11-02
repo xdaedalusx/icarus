@@ -22,4 +22,5 @@ final class AppState: ObservableObject {
     @Published var showingImporter = false
     @Published var showingEQ = false
     @Published var showingPlaylist = false
+    @Published var showingInspector = false
 }

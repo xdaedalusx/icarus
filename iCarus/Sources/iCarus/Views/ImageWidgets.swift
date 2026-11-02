@@ -33,6 +33,7 @@ struct ImageButtonWidget: View {
     let spec: WidgetSpec
     @EnvironmentObject private var engine: PlayerEngine
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var runtime: SceneRuntime
     @Environment(\.skin) private var skin
     @State private var hovering = false
 
@@ -41,10 +42,14 @@ struct ImageButtonWidget: View {
     }
 
     var body: some View {
-        let enabled = engine.isEnabled(spec.binding)
+        // The player's state, unless the skin's script has switched this control off or on.
+        let enabled = runtime.enabledOverride(spec.owner) ?? (engine.isEnabled(spec.binding) && runtime.initiallyEnabled(spec.owner))
         let on = isToggle && engine.isOn(spec.binding)
 
         Button {
+            // A skin with script handles its own click first; if there's no script (or it fails),
+            // the built-in action for this control runs instead.
+            if runtime.runClick(spec.onclick) { return }
             performWidgetAction(spec.binding, engine: engine, appState: appState)
         } label: {
             Color.clear   // the style below draws the artwork
@@ -53,6 +58,7 @@ struct ImageButtonWidget: View {
                                       hovering: hovering, enabled: enabled, on: on))
         .disabled(!enabled)
         .onHover { hovering = $0 }
+        .help(spec.tooltip ?? "")
     }
 }
 
@@ -99,10 +105,23 @@ private struct ImageButtonStyle: ButtonStyle {
 struct ImageSliderWidget: View {
     let spec: WidgetSpec
     @EnvironmentObject private var engine: PlayerEngine
+    @EnvironmentObject private var runtime: SceneRuntime
     @Environment(\.skin) private var skin
     @State private var dragValue: Double?
 
-    private var value: Double { dragValue ?? engine.value(for: spec.binding) }
+    /// Script-managed sliders keep their value (in the skin's own units, e.g. -14...14) on the element.
+    private var isElementValue: Bool { spec.binding == .elementValue }
+    private var low: Double { runtime.number(spec.owner ?? "", "min", default: 0) }
+    private var high: Double { runtime.number(spec.owner ?? "", "max", default: 100) }
+
+    private var value: Double {
+        if let dragValue { return dragValue }
+        if isElementValue {
+            let span = high - low
+            return span == 0 ? 0 : min(max((runtime.number(spec.owner ?? "", "value", default: low) - low) / span, 0), 1)
+        }
+        return engine.value(for: spec.binding)
+    }
 
     var body: some View {
         let vertical = spec.vertical ?? false
@@ -142,10 +161,14 @@ struct ImageSliderWidget: View {
                     let position = vertical ? (height - drag.location.y) : drag.location.x
                     let newValue = min(max((position - inset) / travel, 0), 1)
                     dragValue = newValue
-                    if spec.binding.appliesLive { engine.setValue(newValue, for: spec.binding) }
+                    if isElementValue {
+                        runtime.userSetValue(spec.owner ?? "", low + newValue * (high - low))
+                    } else if spec.binding.appliesLive {
+                        engine.setValue(newValue, for: spec.binding)
+                    }
                 }
                 .onEnded { _ in
-                    if let dragValue, !spec.binding.appliesLive {
+                    if let dragValue, !isElementValue, !spec.binding.appliesLive {
                         engine.setValue(dragValue, for: spec.binding)
                     }
                     dragValue = nil
@@ -234,5 +257,44 @@ struct PositionMap {
         let alpha = Double(pixels[i + 3])
         guard alpha > 128 else { return nil }
         return min(max(Double(pixels[i]) / alpha, 0), 1)
+    }
+}
+
+// MARK: - Playlist pane
+
+/// The skin's own list of the queue (its itemsPlaylist element). Double-click an item to play it.
+struct PlaylistPaneWidget: View {
+    let spec: WidgetSpec
+    @EnvironmentObject private var engine: PlayerEngine
+
+    var body: some View {
+        let ink = Color(hex: spec.textColor ?? "#FFFFFF")
+        ZStack {
+            Color(hex: spec.backColor ?? "#000000")
+            if engine.queue.isEmpty {
+                Text("Nothing queued")
+                    .font(skinFont(spec.fontFace, spec.fontSize ?? 12))
+                    .foregroundStyle(ink.opacity(0.6))
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(engine.queue.enumerated()), id: \.element.id) { index, track in
+                            Text(track.artist.isEmpty ? track.title : "\(track.title) \u{2014} \(track.artist)")
+                                .font(skinFont(spec.fontFace, spec.fontSize ?? 12))
+                                .foregroundStyle(ink)
+                                .lineLimit(1)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(index == engine.currentIndex ? ink.opacity(0.25) : Color.clear)
+                                .contentShape(Rectangle())
+                                .onTapGesture(count: 2) { engine.play(index: index) }
+                        }
+                    }
+                }
+            }
+        }
+        .frame(width: spec.width, height: spec.height)
+        .clipped()
     }
 }

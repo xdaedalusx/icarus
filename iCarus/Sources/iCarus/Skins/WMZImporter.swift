@@ -149,16 +149,46 @@ enum WMZImporter {
                                              files: extracted.files, outputFolder: output)
             let author = root.allNodes.first(where: { $0.tag == "theme" })?
                 .attr("author")?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let scripts = copyScripts(layout: root, extracted: extracted, into: output)
             let built = try WMPSkinBuilder.build(
                 layout: root, artwork: artwork,
                 name: archive.deletingPathExtension().lastPathComponent,
                 author: (author?.isEmpty == false) ? author : nil,
+                scripts: scripts,
                 into: output)
             return BuiltFolder(folder: output, built: built)
         } catch {
             try? FileManager.default.removeItem(at: output)
             throw error
         }
+    }
+
+    /// Copies the skin's script files (as UTF-8 text) into the skin folder and returns their names.
+    /// The view's `scriptFile` lists them; if it names none that exist, every .js file is used.
+    private static func copyScripts(layout root: WMSNode, extracted: ExtractedSkin, into output: URL) -> [String] {
+        let byName = Dictionary(extracted.files.map { (($0 as NSString).lastPathComponent.lowercased(), $0) },
+                                uniquingKeysWith: { first, _ in first })
+        var wanted: [String] = []
+        if let list = root.allNodes.first(where: { $0.tag == "view" })?.attr("scriptfile") {
+            wanted = list.split(separator: ";")
+                .map { ($0.trimmingCharacters(in: .whitespaces) as NSString).lastPathComponent.lowercased() }
+                .filter { $0.hasSuffix(".js") && byName[$0] != nil }
+        }
+        if wanted.isEmpty {
+            wanted = extracted.files.map { ($0 as NSString).lastPathComponent.lowercased() }
+                .filter { $0.hasSuffix(".js") }
+        }
+        var copied: [String] = []
+        for name in wanted where !copied.contains(name) {
+            guard let relative = byName[name],
+                  let data = try? Data(contentsOf: extracted.folder.appendingPathComponent(relative)),
+                  data.count < 2_000_000 else { continue }
+            let text = decode(data)
+            guard (try? text.write(to: output.appendingPathComponent(name), atomically: true, encoding: .utf8)) != nil
+            else { continue }
+            copied.append(name)
+        }
+        return copied
     }
 
     // MARK: Unzip

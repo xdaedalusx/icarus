@@ -19,6 +19,7 @@ struct iCarusApp: App {
     @StateObject private var skins = SkinManager()
     @StateObject private var downloads = DownloadManager()
     @StateObject private var appState = AppState()
+    @StateObject private var scene = SceneRuntime()
 
     var body: some Scene {
         WindowGroup("iCarus") {
@@ -27,6 +28,7 @@ struct iCarusApp: App {
                 .environmentObject(skins)
                 .environmentObject(downloads)
                 .environmentObject(appState)
+                .environmentObject(scene)
         }
         .windowResizability(.contentSize)
         .commands {
@@ -52,6 +54,13 @@ struct iCarusApp: App {
                     appState.showingPlaylist = true
                 }
                 .keyboardShortcut("l", modifiers: .command)
+            }
+            CommandMenu("Skin") {
+                Button("Skin Inspector") {
+                    appState.section = .play
+                    appState.showingInspector = true
+                }
+                .keyboardShortcut("i", modifiers: [.command, .option])
             }
             CommandMenu("Playback") {
                 Button("Play / Pause") { engine.togglePlayPause() }

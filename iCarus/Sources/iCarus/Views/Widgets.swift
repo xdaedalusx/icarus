@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 // MARK: - Widget system
 //
@@ -23,6 +24,7 @@ enum WidgetKind: String, Codable {
     case imageButton    // button with up / hover / down / disabled images
     case imageSlider    // track + optional fill + thumb images
     case filmstripSlider // one picture per position side by side, plus a grey "position map"
+    case playlistPane   // the skin's own list of the queue (itemsPlaylist)
 }
 
 enum WidgetBinding: String, Codable {
@@ -44,6 +46,10 @@ enum WidgetBinding: String, Codable {
     case play, pause, stop, closeWindow, minimizeWindow
     // panels and visualizer (button)
     case showEqualizer, showPlaylist, nextVisualization, previousVisualization
+    // fixed text from the skin itself (a label); the words are in the widget's `text`
+    case staticText
+    // script-driven: a slider whose value lives on its element, and a button that only runs script
+    case elementValue, scriptOnly
     case openFiles, skipBack, skipForward
 
     /// Which EQ band this binding controls, if any.
@@ -105,6 +111,21 @@ struct WidgetSpec: Codable, Equatable, Identifiable {
     /// Filmstrip slider: the grey position map's file, and how many pictures the strip holds.
     var positionImage: String?
     var frames: Int?
+    /// Display with the staticText binding: the words to show.
+    var text: String?
+    /// Imported skins: the id of the layout element this widget belongs to (what a script's
+    /// click or change handler is attached to).
+    var owner: String?
+    /// The script to run when this widget is clicked (from the layout's onclick).
+    var onclick: String?
+    /// Plain display text: if set, words wider than the box scroll past at this many pixels a second.
+    var scrollSpeed: Double?
+    /// Hover tip (a button's tooltip from the layout).
+    var tooltip: String?
+    /// Font family from the layout (fontFace); the system font if the Mac doesn't have it.
+    var fontFace: String?
+    /// Playlist pane: the panel's background colour ("#RRGGBB").
+    var backColor: String?
 }
 
 struct WidgetLayout: Codable, Equatable {
@@ -115,6 +136,11 @@ struct WidgetLayout: Codable, Equatable {
     var showsFaceplate: Bool?
     /// true = borderless transparent window whose outline follows the artwork's transparency.
     var shaped: Bool?
+    /// Imported skins: the layout's element tree, one entry per view. When present it is drawn
+    /// instead of `widgets` (see SceneCanvas).
+    var scenes: [SceneLayout]?
+    /// Imported skins: script files (in the skin's folder) to run.
+    var scripts: [String]?
 }
 
 // MARK: - Bridge to the player
@@ -277,6 +303,7 @@ struct WidgetView: View {
             case .imageButton: ImageButtonWidget(spec: spec)
             case .imageSlider: ImageSliderWidget(spec: spec)
             case .filmstripSlider: FilmstripSliderWidget(spec: spec)
+            case .playlistPane: PlaylistPaneWidget(spec: spec)
             }
         }
         .frame(width: spec.width, height: spec.height)
@@ -470,6 +497,7 @@ struct TunerWidget: View {
 struct DisplayWidget: View {
     let spec: WidgetSpec
     @EnvironmentObject private var engine: PlayerEngine
+    @EnvironmentObject private var runtime: SceneRuntime
     @Environment(\.skin) private var skin
 
     var body: some View {
@@ -483,13 +511,28 @@ struct DisplayWidget: View {
     /// Bare text on top of the skin's own artwork (used by imported skins).
     private var plain: some View {
         let alignment: Alignment = spec.align == "trailing" ? .trailing : (spec.align == "center" ? .center : .leading)
-        return Text(engine.text(for: spec.binding))
-            .font(.system(size: spec.fontSize ?? 10))
-            .foregroundStyle(Color(hex: spec.textColor ?? "#FFFFFF"))
-            .lineLimit(1)
-            .truncationMode(.tail)
-            .frame(width: spec.width, height: spec.height, alignment: alignment)
-            .allowsHitTesting(false)
+        // A label's words can be changed by the skin's script; otherwise the layout's own.
+        let words = spec.binding == .staticText
+            ? (runtime.text(for: spec.owner) ?? spec.text ?? "")
+            : engine.text(for: spec.binding)
+        let clickable = spec.onclick != nil
+        return Group {
+            if let speed = spec.scrollSpeed {
+                MarqueeText(words: words, size: spec.fontSize ?? 10, face: spec.fontFace,
+                            color: Color(hex: spec.textColor ?? "#FFFFFF"),
+                            width: spec.width, alignment: alignment, speed: speed)
+            } else {
+                Text(words)
+                    .font(skinFont(spec.fontFace, spec.fontSize ?? 10))
+                    .foregroundStyle(Color(hex: spec.textColor ?? "#FFFFFF"))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
+        .frame(width: spec.width, height: spec.height, alignment: alignment)
+            .contentShape(Rectangle())
+            .onTapGesture { if clickable { _ = runtime.runClick(spec.onclick) } }
+            .allowsHitTesting(clickable)
     }
 
     private var lcd: some View {
@@ -588,4 +631,55 @@ extension Skin {
         ),
         directory: nil
     )
+}
+
+// MARK: - Scrolling text
+
+/// One line of text that holds still if it fits and otherwise scrolls past in a loop, in whole-pixel steps.
+struct MarqueeText: View {
+    let words: String
+    let size: Double
+    let face: String?
+    let color: Color
+    let width: Double
+    let alignment: Alignment
+    let speed: Double          // pixels per second
+
+    var body: some View {
+        let measuring = face.flatMap { NSFont(name: $0, size: CGFloat(size)) } ?? NSFont.systemFont(ofSize: CGFloat(size))
+        let textWidth = (words as NSString).size(withAttributes: [.font: measuring]).width
+        if textWidth <= width {
+            Text(words)
+                .font(skinFont(face, size))
+                .foregroundStyle(color)
+                .lineLimit(1)
+                .frame(width: width, alignment: alignment)
+        } else {
+            TimelineView(.animation) { timeline in
+                let gap = 40.0
+                let cycle = textWidth + gap
+                let travelled = (timeline.date.timeIntervalSinceReferenceDate * speed).rounded(.down)
+                let offset = -travelled.truncatingRemainder(dividingBy: cycle)
+                HStack(spacing: gap) {
+                    Text(words)
+                    Text(words)
+                }
+                .font(skinFont(face, size))
+                .foregroundStyle(color)
+                .lineLimit(1)
+                .fixedSize()
+                .offset(x: offset)
+                .frame(width: width, alignment: .leading)
+                .clipped()
+            }
+        }
+    }
+}
+
+/// The skin's chosen font family at a size; the system font if the Mac doesn't have it.
+func skinFont(_ face: String?, _ size: Double) -> Font {
+    if let face, !face.isEmpty, NSFont(name: face, size: CGFloat(size)) != nil {
+        return .custom(face, size: CGFloat(size))
+    }
+    return .system(size: CGFloat(size))
 }

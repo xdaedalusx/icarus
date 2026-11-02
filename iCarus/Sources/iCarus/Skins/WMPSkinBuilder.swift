@@ -16,8 +16,14 @@ struct WMPBuiltSkin {
     var canvas: (width: Int, height: Int)
     /// What the skin has that iCarus left out, one short line each.
     var skipped: [String]
-    /// Elements the skin keeps hidden until a script shows them (panes, pop-ups).
+    /// Elements the skin keeps hidden until a script shows them (panes, pop-ups). They are kept.
     var hiddenCount: Int
+    /// How many views (windows / pages) the layout has.
+    var viewCount: Int
+    /// How many elements were kept in the layout's tree.
+    var nodeCount: Int
+    /// Script files kept with the skin (they run in a sandbox, only for skins you import yourself).
+    var scriptCount: Int
 }
 
 enum WMPSkinBuilder {
@@ -40,6 +46,24 @@ enum WMPSkinBuilder {
         var skipped: [String: Int] = [:]
         var hidden = 0
         var unresolved = 0
+        var serial = 0
+        var nodeCount = 0
+        var usedIDs = Set<String>()
+        /// The skin has script files, so buttons with other click handlers can be wired to them.
+        var hasScript = false
+        /// Ids handed out in advance (so a button group can name its buttons before they're built).
+        var idByNode: [ObjectIdentifier: String] = [:]
+        var currentID = ""
+
+        mutating func assignID(_ node: WMSNode, forced: String? = nil) -> String {
+            if let known = idByNode[ObjectIdentifier(node)] { return known }
+            var id = forced ?? node.attr("id")?.lowercased() ?? ""
+            if id.isEmpty { id = "n\(nodeCount + usedIDs.count + 1)" }
+            if usedIDs.contains(id) { id += "-\(usedIDs.count + 1)" }
+            usedIDs.insert(id)
+            idByNode[ObjectIdentifier(node)] = id
+            return id
+        }
         /// The view's own background picture: the "up" state for button groups that name no picture.
         var backdrop: String?
         /// id -> (left, top) relative to its parent, so "jscript:other.top+21" can be resolved.
@@ -48,7 +72,8 @@ enum WMPSkinBuilder {
         mutating func skip(_ what: String) { skipped[what, default: 0] += 1 }
 
         mutating func add(_ label: String, _ make: (String) -> WidgetSpec) {
-            specs.append(make("w\(specs.count)-\(label)"))
+            serial += 1
+            specs.append(make("w\(serial)-\(label)"))
         }
         func file(_ name: String?) -> String? {
             guard let name else { return nil }
@@ -67,21 +92,42 @@ enum WMPSkinBuilder {
                       artwork: WMPArtworkResult,
                       name: String,
                       author: String?,
+                      scripts: [String] = [],
                       into folder: URL) throws -> WMPBuiltSkin {
-        guard let view = root.allNodes.first(where: { $0.tag == "view" }) else { throw BuildError.noView }
+        guard root.allNodes.contains(where: { $0.tag == "view" }) else { throw BuildError.noView }
 
         var context = Context()
         for image in artwork.images { context.images[key(image.source)] = image }
         context.groups = artwork.buttonGroups
-        context.backdrop = view.attr("backgroundimage") ?? view.attr("image")
+        context.hasScript = !scripts.isEmpty
 
         // Window size: the layout's, or else the size of its background picture.
-        let backdrop = context.image(view.attr("backgroundimage") ?? view.attr("image"))
-        guard let width = number(view.attr("width")) ?? backdrop.map({ Double($0.width) }),
-              let height = number(view.attr("height")) ?? backdrop.map({ Double($0.height) }),
-              width > 0, height > 0 else { throw BuildError.noView }
-        emit(view, originX: 0, originY: 0, context: &context)
-        guard !context.specs.isEmpty else { throw BuildError.noArtwork }
+        func size(of view: WMSNode, fallback: (Double, Double)?) -> (Double, Double)? {
+            context.backdrop = view.attr("backgroundimage") ?? view.attr("image")
+            let picture = context.image(context.backdrop)
+            let w = number(view.attr("width")) ?? picture.map { Double($0.width) } ?? fallback?.0
+            let h = number(view.attr("height")) ?? picture.map { Double($0.height) } ?? fallback?.1
+            guard let w, let h, w > 0, h > 0 else { return nil }
+            return (w, h)
+        }
+
+        // Every <view> becomes a scene; the first is the main window.
+        let views = root.allNodes.filter { $0.tag == "view" }
+        var scenes: [SceneLayout] = []
+        var mainSize: (Double, Double)?
+        for (index, view) in views.enumerated() {
+            guard let dimensions = size(of: view, fallback: mainSize) else {
+                if index == 0 { throw BuildError.noView }
+                continue
+            }
+            if index == 0 { mainSize = dimensions }
+            context.ids = [:]
+            let sceneID = index == 0 ? "main" : (view.attr("id")?.lowercased() ?? "view\(index + 1)")
+            let node = buildNode(view, forcedID: "view:" + sceneID, context: &context)
+            scenes.append(SceneLayout(id: sceneID, canvasWidth: dimensions.0, canvasHeight: dimensions.1, root: node))
+        }
+        guard let (width, height) = mainSize, !scenes.isEmpty else { throw BuildError.noView }
+        guard context.serial > 0 else { throw BuildError.noArtwork }
 
         let slug = String(name.lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" })
         let id = "wmp." + slug
@@ -98,7 +144,8 @@ enum WMPSkinBuilder {
                            windowWidth: width, windowHeight: height),
             backgroundImage: nil,
             widgets: WidgetLayout(canvasWidth: width, canvasHeight: height,
-                                  widgets: context.specs, showsFaceplate: false, shaped: true))
+                                  widgets: [], showsFaceplate: false, shaped: true, scenes: scenes,
+                                  scripts: scripts.isEmpty ? nil : scripts))
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -110,51 +157,86 @@ enum WMPSkinBuilder {
         if context.unresolved > 0 {
             lines.append("\(context.unresolved) position(s) worked out by script, placed at 0")
         }
-        return WMPBuiltSkin(id: id, widgetCount: context.specs.count, controlCount: context.controls,
-                            canvas: (Int(width), Int(height)), skipped: lines, hiddenCount: context.hidden)
+        return WMPBuiltSkin(id: id, widgetCount: context.serial, controlCount: context.controls,
+                            canvas: (Int(width), Int(height)), skipped: lines, hiddenCount: context.hidden,
+                            viewCount: scenes.count, nodeCount: context.nodeCount, scriptCount: scripts.count)
     }
 
     // MARK: Walking the layout
 
-    /// Elements whose picture only appears in some state (a script decides), so they stay out.
-    private static let stateDriven: Set<String> = ["returnbutton"]
+    /// Elements whose picture only appears in some state (a script decides): kept, but hidden to start.
+    private static let hiddenAtStart: Set<String> = ["returnbutton"]
 
-    /// Video is a real window in WMP, so it always sits above the skin's picture whatever its zIndex.
-    private static func z(_ node: WMSNode) -> Int {
-        let value = Int(number(node.attr("zindex")) ?? 0)
-        return node.tag == "video" ? max(value, 0) : value
+    /// "jscript:bass.top+21;" -> "bass.top+21". Plain numbers and blanks give nil.
+    private static func expression(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let value = text.trimmingCharacters(in: .whitespaces)
+        guard value.lowercased().hasPrefix("jscript:") else { return nil }
+        let body = value.dropFirst("jscript:".count).replacingOccurrences(of: ";", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return body.isEmpty ? nil : body
     }
 
-    /// Adds `node`'s own picture / control and its children's, bottom to top.
-    private static func emit(_ node: WMSNode, originX: Double, originY: Double, context: inout Context) {
-        let x = originX + coordinate(node.attr("left"), .left, &context)
-        let y = originY + coordinate(node.attr("top"), .top, &context)
+    /// Attributes that are event handlers (onclick, onload, value_onchange, ...). Kept for scripts.
+    private static func eventHandlers(_ node: WMSNode) -> [String: String] {
+        var result: [String: String] = [:]
+        for (key, value) in node.attributes where key.hasPrefix("on") || key.contains("_on") {
+            result[key] = value
+        }
+        return result
+    }
+
+    /// Turns a layout element (and everything inside it) into a scene node. Nothing is dropped:
+    /// hidden elements stay in the tree with `visible = false`.
+    private static func buildNode(_ node: WMSNode, forcedID: String? = nil,
+                                  context: inout Context) -> SceneNode {
+        // A unique, lower-cased id (scripts find elements by name).
+        let id = context.assignID(node, forced: forcedID)
+        context.nodeCount += 1
+        // Hand out the children's ids now, so this element's buttons can be tied to them.
+        for child in node.children { _ = context.assignID(child) }
+
+        var scene = SceneNode(id: id, tag: node.tag)
+        scene.name = forcedID == nil ? node.attr("id") : nil
+        for key in ["value", "tooltip", "uptooltip", "min", "max", "enabled", "visible",
+                    "currenteffecttype", "currentpreset", "timerinterval"] {
+            if let value = node.attr(key) { scene.props[key] = value }
+        }
+        scene.left = coordinate(node.attr("left"), .left, &context)
+        scene.top = coordinate(node.attr("top"), .top, &context)
+        scene.leftExpr = expression(node.attr("left"))
+        scene.topExpr = expression(node.attr("top"))
+        scene.width = number(node.attr("width"))
+        scene.height = number(node.attr("height"))
+        scene.zIndex = Int(number(node.attr("zindex")) ?? 0)
+        scene.visible = node.attr("visible")?.lowercased() != "false" && !hiddenAtStart.contains(node.tag)
+        scene.enabled = node.attr("enabled")?.lowercased() != "false"
+        scene.events = eventHandlers(node)
+        if !scene.visible { context.hidden += 1 }
 
         // Remember named children's positions first, so later siblings can refer to them.
         for child in node.children {
-            if let id = child.attr("id")?.lowercased() {
-                context.ids[id] = (resolve(child.attr("left"), .left, context) ?? 0,
-                                   resolve(child.attr("top"), .top, context) ?? 0)
+            if let childID = child.attr("id")?.lowercased() {
+                context.ids[childID] = (resolve(child.attr("left"), .left, context) ?? 0,
+                                        resolve(child.attr("top"), .top, context) ?? 0)
             }
         }
 
-        // Stable sort by zIndex (document order breaks ties).
-        // (A video window goes before the visualizer when they share a level, so the visualizer
-        // is drawn over the picture / cover art.)
-        let ordered = node.children.enumerated().sorted { a, b in
-            if z(a.element) != z(b.element) { return z(a.element) < z(b.element) }
-            let videoA = a.element.tag == "video", videoB = b.element.tag == "video"
-            if videoA != videoB { return videoA }
-            return a.offset < b.offset
-        }.map { $0.element }
+        // This element's own drawing, placed relative to its own corner.
+        let outer = context.specs
+        context.specs = []
+        context.currentID = id
+        drawOwn(node, x: 0, y: 0, context: &context)
+        // Every widget belongs to an element (unless drawOwn named a more specific one).
+        scene.specs = context.specs.map { spec in
+            var copy = spec
+            if copy.owner == nil { copy.owner = id }
+            return copy
+        }
+        context.specs = outer
 
-        for child in ordered where z(child) < 0 {
-            visit(child, originX: x, originY: y, context: &context)
-        }
-        drawOwn(node, x: x, y: y, context: &context)
-        for child in ordered where z(child) >= 0 {
-            visit(child, originX: x, originY: y, context: &context)
-        }
+        scene.children = node.children.map { buildNode($0, context: &context) }
+        return scene
     }
 
     private static func coordinate(_ text: String?, _ axis: Axis, _ context: inout Context) -> Double {
@@ -164,20 +246,11 @@ enum WMPSkinBuilder {
         return 0
     }
 
-    private static func visit(_ node: WMSNode, originX: Double, originY: Double, context: inout Context) {
-        if node.attr("visible")?.lowercased() == "false" {
-            context.hidden += node.allNodes.count
-            return
-        }
-        if stateDriven.contains(node.tag) { context.hidden += 1; return }
-        emit(node, originX: originX, originY: originY, context: &context)
-    }
-
     /// Tags that only organise the layout; they're never "skipped" content.
     private static let organising: Set<String> = [
         "view", "subview", "theme", "player", "equalizersettings", "effects",
         "button", "buttongroup", "seekslider", "volumeslider", "balanceslider", "slider",
-        "progressbar", "customslider", "video", "controls",
+        "progressbar", "customslider", "video", "controls", "itemsplaylist",
         "statustext", "currentpositiontext", "text"
     ]
 
@@ -192,6 +265,8 @@ enum WMPSkinBuilder {
             drawFilmstrip(node, x: x, y: y, context: &context)
         case "video":
             drawVideo(node, x: x, y: y, context: &context)
+        case "itemsplaylist":
+            drawPlaylist(node, x: x, y: y, context: &context)
         case "statustext":
             drawText(node, binding: .trackTitle, x: x, y: y, context: &context)
         case "currentpositiontext":
@@ -199,8 +274,20 @@ enum WMPSkinBuilder {
         case "text":
             if let binding = textBinding(node.attr("value")) {
                 drawText(node, binding: binding, x: x, y: y, context: &context)
-            } else if let value = node.attr("value"), !value.isEmpty {
-                context.skip("text label")
+            } else if (node.attr("value") ?? "").trimmingCharacters(in: .whitespaces).isEmpty {
+                // No words yet: a script fills this in (e.g. the scrolling song title).
+                drawText(node, binding: .staticText, literal: "", x: x, y: y, context: &context)
+            } else if let value = node.attr("value")?.trimmingCharacters(in: .whitespaces), !value.isEmpty {
+                let lower = value.lowercased()
+                if lower.hasPrefix("wmpprop:") {
+                    // A live value from the player; the script host keeps its words up to date.
+                    drawText(node, binding: .staticText, literal: "", x: x, y: y, context: &context)
+                } else if lower.hasPrefix("jscript:") {
+                    context.skip("text from script")
+                } else {
+                    // A fixed label ("Bass", "Volume", ...).
+                    drawText(node, binding: .staticText, literal: value, x: x, y: y, context: &context)
+                }
             }
         case "effects":
             drawVisualizer(node, x: x, y: y, context: &context)
@@ -283,7 +370,10 @@ enum WMPSkinBuilder {
         var working: [(WMSNode, WidgetBinding, PixelRect)] = []
         for element in elements {
             let color = (element.attr("mappingcolor") ?? "").uppercased()
-            if let action = binding(for: element),
+            let click = element.attr("onclick")?.trimmingCharacters(in: .whitespaces) ?? ""
+            // A known action, or (if the skin has script) whatever its click handler does.
+            let action = binding(for: element) ?? (context.hasScript && !click.isEmpty ? WidgetBinding.scriptOnly : nil)
+            if let action,
                let rect = group?.regions.first(where: { $0.mappingColor == color })?.rect {
                 working.append((element, action, rect))
             } else {
@@ -304,6 +394,7 @@ enum WMPSkinBuilder {
         let disabled = context.file(node.attr("disabledimage"))
         for (element, action, rect) in working {
             let label = (element.attr("id") ?? element.tag)
+            let ownerID = context.idByNode[ObjectIdentifier(element)]
             context.controls += 1
             context.add(label) { id in
                 WidgetSpec(id: id, kind: .imageButton, binding: action,
@@ -311,7 +402,9 @@ enum WMPSkinBuilder {
                            y: y + Double(rect.y) + Double(rect.height) / 2,
                            width: Double(rect.width), height: Double(rect.height),
                            image: up, hoverImage: hover, downImage: down, disabledImage: disabled,
-                           crop: [Double(rect.x), Double(rect.y), Double(rect.width), Double(rect.height)])
+                           crop: [Double(rect.x), Double(rect.y), Double(rect.width), Double(rect.height)],
+                           owner: ownerID, onclick: element.attr("onclick"),
+                           tooltip: tooltip(element))
             }
         }
     }
@@ -320,11 +413,9 @@ enum WMPSkinBuilder {
     private static func drawButton(_ node: WMSNode, x: Double, y: Double, context: inout Context) {
         let clicks = node.attr("onclick")
         guard let image = context.image(node.attr("image")) else { return }
-        guard let action = action(forClick: clicks) else {
-            if let clicks, !clicks.trimmingCharacters(in: .whitespaces).isEmpty,
-               node.attr("enabled")?.lowercased() != "false" {
-                context.skip(describe(node))
-            }
+        let hasClick = !(clicks ?? "").trimmingCharacters(in: .whitespaces).isEmpty
+        guard let action = action(forClick: clicks) ?? (context.hasScript && hasClick ? WidgetBinding.scriptOnly : nil) else {
+            if hasClick, node.attr("enabled")?.lowercased() != "false" { context.skip(describe(node)) }
             drawPicture(node, x: x, y: y, context: &context)
             return
         }
@@ -337,7 +428,8 @@ enum WMPSkinBuilder {
             WidgetSpec(id: id, kind: .imageButton, binding: action,
                        x: x + Double(image.width) / 2, y: y + Double(image.height) / 2,
                        width: Double(image.width), height: Double(image.height),
-                       image: up, hoverImage: hover, downImage: down, disabledImage: disabled)
+                       image: up, hoverImage: hover, downImage: down, disabledImage: disabled,
+                       onclick: clicks, tooltip: tooltip(node))
         }
     }
 
@@ -361,6 +453,9 @@ enum WMPSkinBuilder {
         case "balanceslider": return .balance
         default: break
         }
+        // A slider whose change handler is script (e.g. bass/treble that script mixes into 10 bands)
+        // keeps its value on the element, and the script does the rest.
+        if node.tag == "slider", node.attr("value_onchange") != nil { return .elementValue }
         let value = (node.attr("value") ?? "").lowercased().replacingOccurrences(of: " ", with: "")
         if value.contains("currentposition") { return .seek }
         if value.contains("settings.volume") { return .volume }
@@ -435,6 +530,34 @@ enum WMPSkinBuilder {
         }
     }
 
+    /// The skin's own list of what's queued: a panel the size of the element. Double-click plays an item.
+    private static func drawPlaylist(_ node: WMSNode, x: Double, y: Double, context: inout Context) {
+        guard let w = number(node.attr("width")), let h = number(node.attr("height")) else { return }
+        func hex(_ attribute: String, _ fallback: String) -> String {
+            let raw = (node.attr(attribute) ?? "").trimmingCharacters(in: .whitespaces)
+            return raw.hasPrefix("#") ? raw : (colorNames[raw.lowercased()] ?? fallback)
+        }
+        let points = number(node.attr("fontsize")) ?? 9
+        context.controls += 1
+        context.add("playlist") { id in
+            WidgetSpec(id: id, kind: .playlistPane, binding: .play,
+                       x: x + w / 2, y: y + h / 2, width: w, height: h,
+                       fontSize: (points * 4 / 3).rounded(),
+                       textColor: hex("foregroundcolor", "#FFFFFF"),
+                       fontFace: fontFace(node), backColor: hex("backgroundcolor", "#000000"))
+        }
+    }
+
+    private static func tooltip(_ node: WMSNode) -> String? {
+        let tip = (node.attr("uptooltip") ?? node.attr("tooltip") ?? "").trimmingCharacters(in: .whitespaces)
+        return tip.isEmpty ? nil : tip
+    }
+
+    private static func fontFace(_ node: WMSNode) -> String? {
+        let face = (node.attr("fontface") ?? "").trimmingCharacters(in: .whitespaces)
+        return face.isEmpty ? nil : face
+    }
+
     // MARK: Text
 
     /// Which player text a `<text value="wmpprop:...">` shows.
@@ -454,8 +577,8 @@ enum WMPSkinBuilder {
         "silver": "#C0C0C0", "navy": "#000080", "orange": "#FFA500"
     ]
 
-    private static func drawText(_ node: WMSNode, binding: WidgetBinding, x: Double, y: Double,
-                                 context: inout Context) {
+    private static func drawText(_ node: WMSNode, binding: WidgetBinding, literal: String? = nil,
+                                 x: Double, y: Double, context: inout Context) {
         let width = number(node.attr("width")) ?? 100
         let points = number(node.attr("fontsize")) ?? 9
         let size = (points * 4 / 3).rounded()       // WMP sizes are points; the canvas is pixels
@@ -468,11 +591,20 @@ enum WMPSkinBuilder {
         }
         let rawColor = (node.attr("foregroundcolor") ?? "").trimmingCharacters(in: .whitespaces)
         let color = rawColor.hasPrefix("#") ? rawColor : colorNames[rawColor.lowercased()]
+        let face = fontFace(node)
+        // scrolling="true" / "auto": long words slide past (scrollingAmount pixels every scrollingDelay ms).
+        let scrolling = (node.attr("scrolling") ?? "false").lowercased()
+        let scrolls = scrolling == "true" || scrolling == "auto"
+        let amount = number(node.attr("scrollingamount")) ?? 3
+        let delay = max(number(node.attr("scrollingdelay")) ?? 100, 10)
         context.add(binding.rawValue) { id in
             WidgetSpec(id: id, kind: .display, binding: binding,
                        x: x + width / 2, y: y + height / 2, width: width, height: height,
                        fontSize: size, style: "plain",
-                       textColor: color ?? "#0A1633", align: align)
+                       textColor: color ?? "#0A1633", align: align, text: literal,
+                       onclick: node.attr("onclick"),
+                       scrollSpeed: scrolls ? amount * 1000 / delay : nil,
+                       fontFace: face)
         }
     }
 

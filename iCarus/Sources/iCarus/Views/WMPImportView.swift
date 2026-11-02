@@ -75,6 +75,8 @@ struct WMPImportSection: View {
             defer { try? FileManager.default.removeItem(at: result.folder) }
             skins.importSkin(from: result.folder)   // installs and selects it
             if let problem = skins.lastError { return .failure(problem) }
+            // You imported it yourself, so its script is allowed to run (sandboxed; switch it off in the Skin Inspector).
+            if result.built.scriptCount > 0 { SceneRuntime.setScriptsAllowed(result.built.id, true) }
             return .success(result.built)
         } catch {
             return .failure(error.localizedDescription)
@@ -110,10 +112,18 @@ struct WMPImportReportView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Working").font(.headline)
                         Text("\(built.controlCount) controls are wired up (buttons, sliders, text, visualizer).")
+                        if built.scriptCount > 0 {
+                            Text("\(built.scriptCount) script file(s) will run in a sandbox with no access to your files or the network. You can switch them off in Skin > Skin Inspector.")
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Text("Kept \(built.nodeCount) layout elements in \(built.viewCount) view(s), including \(built.hiddenCount) that start hidden (sliding panes, pop-ups). A script can reveal them.")
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Skipped").font(.headline)
-                        if built.skipped.isEmpty && built.hiddenCount == 0 {
+                        if built.skipped.isEmpty {
                             Text("Nothing. Everything in the layout was carried over.")
                         }
                         ForEach(built.skipped, id: \.self) { line in
@@ -121,12 +131,7 @@ struct WMPImportReportView: View {
                                 .foregroundStyle(.orange)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        if built.hiddenCount > 0 {
-                            Label("\(built.hiddenCount) element(s) the skin only shows by script (sliding panes, pop-ups)",
-                                  systemImage: "minus.circle")
-                                .foregroundStyle(.orange)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+
                     }
                     if !report.scriptFiles.isEmpty {
                         Text("Scripted behaviour (\(report.scriptFiles.joined(separator: ", "))) doesn't carry over.")

@@ -26,7 +26,11 @@ struct PlayerView: View {
             case .compact: CompactLayout()
             case .widgets:
                 if let layout = skin.manifest.widgets {
-                    WidgetCanvas(layout: layout).padding(skin.isShaped ? 0 : 8)
+                    if let scenes = layout.scenes, !scenes.isEmpty {
+                        SceneCanvas(layouts: scenes).padding(skin.isShaped ? 0 : 8)
+                    } else {
+                        WidgetCanvas(layout: layout).padding(skin.isShaped ? 0 : 8)
+                    }
                 } else {
                     StandardLayout()
                 }
@@ -66,6 +70,9 @@ struct PlayerView: View {
         }
         .sheet(isPresented: $appState.showingPlaylist) {
             PlaylistSheet()
+        }
+        .sheet(isPresented: $appState.showingInspector) {
+            SkinInspectorView()
         }
         .overlay(alignment: .bottom) {
             if let message = engine.errorMessage {
