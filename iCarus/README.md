@@ -259,3 +259,8 @@ Switch it off by deleting the skin's entry from the `scriptSkins` preference, or
 - Button tooltips (`tooltip` / `upToolTip`) appear on hover.
 - `fontFace` is honoured for text and the playlist when the Mac has that font; otherwise the system font is used.
 - Not done yet: sounds, effect presets, video fullscreen / separate video windows, `equalizerSettings` as a visible control.
+
+## Equalizer reset
+
+Reset (the EQ sheet, a skin's reset control, or a script's `eq.reset()`) now glides every band and the balance to
+neutral over one second instead of jumping. Touching a slider or choosing a preset stops the glide.

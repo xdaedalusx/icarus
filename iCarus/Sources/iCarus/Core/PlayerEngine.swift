@@ -295,6 +295,7 @@ final class PlayerEngine: ObservableObject {
     // MARK: Equalizer
 
     func setEQGain(_ gain: Float, band: Int) {
+        resetClock = nil       // the user took over: stop any glide to flat
         guard eqGains.indices.contains(band) else { return }
         let clamped = min(max(gain, -EQ.range), EQ.range)
         eqGains[band] = clamped
@@ -303,6 +304,7 @@ final class PlayerEngine: ObservableObject {
     }
 
     func applyPreset(_ preset: EQPreset) {
+        resetClock = nil
         for (band, gain) in preset.gains.enumerated() where band < EQ.bandCount {
             eqGains[band] = gain
             eqUnit.bands[band].gain = gain
@@ -310,10 +312,30 @@ final class PlayerEngine: ObservableObject {
         saveEQ()
     }
 
-    /// Flattens every band and centres the balance.
-    func resetEQ() {
-        applyPreset(.flat)
-        balance = 0
+    private var resetClock: AnyCancellable?
+
+    /// Glides every band and the balance to neutral over about a second (touching a slider stops it).
+    func resetEQ(duration: Double = 1.0) {
+        resetClock = nil
+        let startGains = eqGains
+        let startBalance = balance
+        let begin = Date()
+        resetClock = Timer.publish(every: 1.0 / 60.0, on: .main, in: .common).autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                let t = min(1, Date().timeIntervalSince(begin) / duration)
+                let remaining = Float(pow(1 - t, 3))          // eases out: fast at first, settling gently
+                for band in 0..<min(startGains.count, EQ.bandCount) {
+                    let gain = t >= 1 ? 0 : startGains[band] * remaining
+                    self.eqGains[band] = gain
+                    self.eqUnit.bands[band].gain = gain
+                }
+                self.balance = t >= 1 ? 0 : startBalance * remaining
+                if t >= 1 {
+                    self.resetClock = nil
+                    self.saveEQ()
+                }
+            }
     }
 
     private func saveEQ() {
