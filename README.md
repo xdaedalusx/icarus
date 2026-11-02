@@ -1,4 +1,6 @@
-# iCarus
+![iCarus app preview](iCarus/Assets.xcassets/AppIcon.appiconset/icon_512x512.png)
+
+# iCarus: A Transcendental Approach to Music Streaming
 
 A skinnable media player for macOS 13+, built with SwiftUI. Download music and video with
 yt-dlp, play it with an equalizer and live visualizer, and dress the player in skins, including
