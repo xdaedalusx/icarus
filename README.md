@@ -68,7 +68,7 @@ New skins can be found in the Windows Media Player Skins Archive: https://wmpski
 
 <img src="screenshots/sample_skin2.png" alt="iCarus app demo design" width="50%">
 
-<img src="screenshots/sample_skin3.png" alt="iCarus app demo design" width="50%">
+<img src="screenshots/sample_skin4.png" alt="iCarus app demo design" width="50%">
 
 ## How it's organised
 
