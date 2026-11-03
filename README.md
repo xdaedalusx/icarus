@@ -1,4 +1,5 @@
-![iCarus app preview](iCarus/Assets.xcassets/AppIcon.appiconset/icon_512x512.png)
+<img src="screenshots/sample_skin.png" alt="iCarus app demo design" width="50%">
+
 
 # iCarus: A Transcendental Approach to Music Streaming
 
@@ -25,6 +26,8 @@ Get needs yt-dlp and ffmpeg: `brew install yt-dlp ffmpeg`. If downloads start fa
   subtitles, browser cookies, speed limit, and a free-text box for other yt-dlp options (ones that run other
   programs are blocked). The exact command is shown and can be copied. "Reset to Defaults" restores the basics.
 
+<img src="screenshots/classic_simple_ui_get.png" alt="iCarus app demo design" width="50%">
+
 ### Play
 - Add songs with ⌘O or by dragging files onto the window. Queue, shuffle and repeat; playlist on ⌘L.
 - Audio and video playback; the video pane appears for files that have video.
@@ -33,12 +36,16 @@ Get needs yt-dlp and ffmpeg: `brew install yt-dlp ffmpeg`. If downloads start fa
 - **Visualizer:** bars, waveform or radial, driven by the live audio. Click it to change style.
 - Shortcuts: Space or ⌘P play/pause, ⌘→ next, ⌘← previous, ⌘. stop, ⌘, skin picker.
 
+<img src="screenshots/classic_simple_ui_play.png" alt="iCarus app demo design" width="50%">
+
+
 ## Skins
 
 A skin is a folder with a `skin.json` plus images (see `SampleSkins/`). Skins can be built-in layouts with
 their own colours and fonts, or fully image-based: buttons, sliders, filmstrips, shaped transparent windows.
 Choose or import one from the skin picker (⌘,). The Skin Inspector (⌘⌥I) shows a skin's element tree,
 lets you toggle parts, and shows the script log.
+
 
 ### Windows Media Player skins
 Import a `.wmz` and iCarus converts it: it reads the layout, cuts out the transparent
@@ -56,6 +63,12 @@ anything it couldn't map.
   view timers, change and click events.
 - **Not yet supported:** sounds, effect presets, fullscreen or separate video windows, and a time limit
   on scripts (a script that never returns freezes the app).
+
+New skins can be found in the Windows Media Player Skins Archive: https://wmpskinsarchive.neocities.org
+
+<img src="screenshots/sample_skin2.png" alt="iCarus app demo design" width="50%">
+
+<img src="screenshots/sample_skin4.png" alt="iCarus app demo design" width="50%">
 
 ## How it's organised
 
