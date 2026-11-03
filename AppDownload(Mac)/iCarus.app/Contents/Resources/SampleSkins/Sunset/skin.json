@@ -1,0 +1,26 @@
+{
+  "id": "community.sunset",
+  "name": "Sunset",
+  "author": "Sample Author",
+  "version": "1.0",
+  "layout": "standard",
+  "colors": {
+    "background": "#2B1020",
+    "surface": "#4A1D3A",
+    "accent": "#FF7A59",
+    "text": "#FFEFE6",
+    "secondaryText": "#E7A8A0"
+  },
+  "typography": {
+    "design": "rounded",
+    "titleSize": 22,
+    "bodySize": 13
+  },
+  "metrics": {
+    "cornerRadius": 22,
+    "spacing": 16,
+    "controlSize": 30,
+    "windowWidth": 440,
+    "windowHeight": 680
+  }
+}

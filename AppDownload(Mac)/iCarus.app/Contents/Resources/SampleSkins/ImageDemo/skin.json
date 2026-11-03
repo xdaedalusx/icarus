@@ -1,0 +1,231 @@
+{
+  "id": "community.imagedemo",
+  "name": "Image Demo (shaped)",
+  "author": "iCarus",
+  "version": "1.0",
+  "layout": "widgets",
+  "colors": {
+    "background": "#14171C",
+    "surface": "#262B32",
+    "accent": "#FFB347",
+    "text": "#E8EDF2",
+    "secondaryText": "#8A94A3"
+  },
+  "typography": {
+    "design": "monospaced",
+    "titleSize": 15,
+    "bodySize": 11
+  },
+  "metrics": {
+    "cornerRadius": 12,
+    "spacing": 10,
+    "controlSize": 24,
+    "windowWidth": 600,
+    "windowHeight": 220
+  },
+  "widgets": {
+    "canvasWidth": 600,
+    "canvasHeight": 220,
+    "showsFaceplate": false,
+    "shaped": true,
+    "widgets": [
+      {
+        "id": "faceplate",
+        "kind": "image",
+        "binding": "isPlaying",
+        "x": 300,
+        "y": 110,
+        "width": 600,
+        "height": 220,
+        "image": "faceplate.png"
+      },
+      {
+        "id": "time",
+        "kind": "display",
+        "binding": "elapsedTime",
+        "x": 300,
+        "y": 22,
+        "width": 130,
+        "height": 22,
+        "fontSize": 11
+      },
+      {
+        "id": "title",
+        "kind": "display",
+        "binding": "trackTitle",
+        "x": 300,
+        "y": 76,
+        "width": 330,
+        "height": 34,
+        "fontSize": 15
+      },
+      {
+        "id": "seek",
+        "kind": "imageSlider",
+        "binding": "seek",
+        "x": 300,
+        "y": 118,
+        "width": 300,
+        "height": 22,
+        "image": "seek_track.png",
+        "fillImage": "seek_fill.png",
+        "thumbImage": "thumb.png",
+        "thumbDownImage": "thumb_down.png",
+        "inset": 7
+      },
+      {
+        "id": "volume",
+        "kind": "knob",
+        "binding": "volume",
+        "x": 72,
+        "y": 118,
+        "width": 80,
+        "height": 80,
+        "image": "knob.png",
+        "minAngle": -135,
+        "maxAngle": 135
+      },
+      {
+        "id": "viz",
+        "kind": "visualization",
+        "binding": "isPlaying",
+        "x": 525,
+        "y": 110,
+        "width": 100,
+        "height": 76,
+        "style": "bars"
+      },
+      {
+        "id": "prev",
+        "kind": "imageButton",
+        "binding": "previous",
+        "x": 180,
+        "y": 180,
+        "width": 48,
+        "height": 40,
+        "image": "buttons_up.png",
+        "hoverImage": "buttons_hover.png",
+        "downImage": "buttons_down.png",
+        "disabledImage": "buttons_disabled.png",
+        "crop": [
+          0,
+          0,
+          48,
+          40
+        ]
+      },
+      {
+        "id": "play",
+        "kind": "imageButton",
+        "binding": "play",
+        "x": 240,
+        "y": 180,
+        "width": 48,
+        "height": 40,
+        "image": "buttons_up.png",
+        "hoverImage": "buttons_hover.png",
+        "downImage": "buttons_down.png",
+        "disabledImage": "buttons_disabled.png",
+        "crop": [
+          48,
+          0,
+          48,
+          40
+        ]
+      },
+      {
+        "id": "pause",
+        "kind": "imageButton",
+        "binding": "pause",
+        "x": 300,
+        "y": 180,
+        "width": 48,
+        "height": 40,
+        "image": "buttons_up.png",
+        "hoverImage": "buttons_hover.png",
+        "downImage": "buttons_down.png",
+        "disabledImage": "buttons_disabled.png",
+        "crop": [
+          96,
+          0,
+          48,
+          40
+        ]
+      },
+      {
+        "id": "stop",
+        "kind": "imageButton",
+        "binding": "stop",
+        "x": 360,
+        "y": 180,
+        "width": 48,
+        "height": 40,
+        "image": "buttons_up.png",
+        "hoverImage": "buttons_hover.png",
+        "downImage": "buttons_down.png",
+        "disabledImage": "buttons_disabled.png",
+        "crop": [
+          144,
+          0,
+          48,
+          40
+        ]
+      },
+      {
+        "id": "next",
+        "kind": "imageButton",
+        "binding": "next",
+        "x": 420,
+        "y": 180,
+        "width": 48,
+        "height": 40,
+        "image": "buttons_up.png",
+        "hoverImage": "buttons_hover.png",
+        "downImage": "buttons_down.png",
+        "disabledImage": "buttons_disabled.png",
+        "crop": [
+          192,
+          0,
+          48,
+          40
+        ]
+      },
+      {
+        "id": "minimize",
+        "kind": "imageButton",
+        "binding": "minimizeWindow",
+        "x": 535,
+        "y": 36,
+        "width": 20,
+        "height": 16,
+        "image": "win_up.png",
+        "hoverImage": "win_hover.png",
+        "downImage": "win_down.png",
+        "crop": [
+          0,
+          0,
+          20,
+          16
+        ]
+      },
+      {
+        "id": "close",
+        "kind": "imageButton",
+        "binding": "closeWindow",
+        "x": 560,
+        "y": 36,
+        "width": 20,
+        "height": 16,
+        "image": "win_up.png",
+        "hoverImage": "win_hover.png",
+        "downImage": "win_down.png",
+        "crop": [
+          20,
+          0,
+          20,
+          16
+        ]
+      }
+    ]
+  }
+}
