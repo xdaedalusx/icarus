@@ -1,4 +1,4 @@
-![iCarus app preview](iCarus/Assets.xcassets/AppIcon.appiconset/icon_512x512.png)
+![iCarus app demo design](iCarus/screenshots/sample_skin.png)
 
 # iCarus: A Transcendental Approach to Music Streaming
 
