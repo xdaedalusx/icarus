@@ -46,6 +46,7 @@ their own colours and fonts, or fully image-based: buttons, sliders, filmstrips,
 Choose or import one from the skin picker (⌘,). The Skin Inspector (⌘⌥I) shows a skin's element tree,
 lets you toggle parts, and shows the script log.
 
+
 ### Windows Media Player skins
 Import a `.wmz` and iCarus converts it: it reads the layout, cuts out the transparent
 shape, maps buttons and sliders to the player, and keeps the whole element tree. After installing it lists
@@ -62,6 +63,12 @@ anything it couldn't map.
   view timers, change and click events.
 - **Not yet supported:** sounds, effect presets, fullscreen or separate video windows, and a time limit
   on scripts (a script that never returns freezes the app).
+
+New skins can be found in the Windows Media Player Skins Archive: https://wmpskinsarchive.neocities.org
+
+<img src="screenshots/sample_skin2.png" alt="iCarus app demo design" width="50%">
+
+<img src="screenshots/sample_skin3.png" alt="iCarus app demo design" width="50%">
 
 ## How it's organised
 
