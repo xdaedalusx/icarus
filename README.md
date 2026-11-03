@@ -26,6 +26,8 @@ Get needs yt-dlp and ffmpeg: `brew install yt-dlp ffmpeg`. If downloads start fa
   subtitles, browser cookies, speed limit, and a free-text box for other yt-dlp options (ones that run other
   programs are blocked). The exact command is shown and can be copied. "Reset to Defaults" restores the basics.
 
+<img src="screenshots/classic_simple_ui_get.png" alt="iCarus app demo design" width="50%">
+
 ### Play
 - Add songs with ⌘O or by dragging files onto the window. Queue, shuffle and repeat; playlist on ⌘L.
 - Audio and video playback; the video pane appears for files that have video.
@@ -33,6 +35,9 @@ Get needs yt-dlp and ffmpeg: `brew install yt-dlp ffmpeg`. If downloads start fa
   to neutral instead of jumping.
 - **Visualizer:** bars, waveform or radial, driven by the live audio. Click it to change style.
 - Shortcuts: Space or ⌘P play/pause, ⌘→ next, ⌘← previous, ⌘. stop, ⌘, skin picker.
+
+<img src="screenshots/classic_simple_ui_play.png" alt="iCarus app demo design" width="50%">
+
 
 ## Skins
 
