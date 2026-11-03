@@ -1,4 +1,4 @@
-![iCarus app demo design](iCarus/screenshots/sample_skin.png)
+![iCarus app demo design](screenshots/sample_skin.png)
 
 # iCarus: A Transcendental Approach to Music Streaming
 
